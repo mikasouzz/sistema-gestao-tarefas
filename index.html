@@ -856,6 +856,19 @@
         gap: 18px;
         margin-bottom: 20px;
       }
+      .charts-grid-3 {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+      .dash-section-label {
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 600;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 14px;
+      }
       .chart-container {
         background: var(--bg-elevated);
         padding: 16px;
@@ -2034,6 +2047,28 @@
             <canvas id="chart-monthly"></canvas>
           </div>
         </div>
+        <div class="dash-section-label">Origem e Volume</div>
+        <div class="charts-grid charts-grid-3">
+          <div class="chart-container"><canvas id="chart-fonte"></canvas></div>
+          <div class="chart-container"><canvas id="chart-tipo"></canvas></div>
+          <div class="chart-container"><canvas id="chart-fonte-rate"></canvas></div>
+        </div>
+
+        <div class="dash-section-label">Priorização</div>
+        <div class="charts-grid">
+          <div class="chart-container"><canvas id="chart-quadrante"></canvas></div>
+          <div class="chart-container"><canvas id="chart-score-tipo"></canvas></div>
+        </div>
+
+        <div class="dash-section-label">Delegação</div>
+        <div class="charts-grid" style="margin-bottom:20px;">
+          <div class="chart-container" id="chart-delegados-wrap">
+            <canvas id="chart-delegados"></canvas>
+            <p id="chart-delegados-empty" style="display:none;color:var(--text-secondary);font-size:0.78rem;padding:20px 0;text-align:center;">Nenhuma delegação com responsável definido no período.</p>
+          </div>
+          <div></div>
+        </div>
+
         <div class="history-list">
           <h3 class="mb-4">Histórico de Conclusões</h3>
           <div id="history-container"></div>
@@ -3295,6 +3330,12 @@
       const DashCtrl = {
         chartPerf: null,
         chartMonth: null,
+        chartFonte: null,
+        chartTipo: null,
+        chartFonteRate: null,
+        chartQuadrante: null,
+        chartScoreTipo: null,
+        chartDelegados: null,
         execMonth(month) {
           const seen = new Map();
           const allTasks = [...AppState.tasks, ...AppArchive.tasks];
@@ -3344,6 +3385,9 @@
             ).length;
 
           this.renderCharts(execDone, entries.length - execDone, month);
+          this.renderOrigemVolume(entries);
+          this.renderPriorizacao(entries);
+          this.renderDelegacao(entries);
           this.renderHistory();
         },
         renderCharts(done, pending, currentMonth) {
@@ -3462,6 +3506,120 @@
             },
           });
         },
+        renderOrigemVolume(entries) {
+          const CO = { color: "#eeeeff", font: { size: 10 }, boxWidth: 10 };
+          const titleOpts = (text) => ({ display: true, text, color: "#eeeeff", font: { size: 12, weight: "600" }, padding: { bottom: 8 } });
+          const gridColor = "rgba(255,255,255,0.05)";
+          const tickStyle = { color: "#7878a0", font: { size: 10 } };
+
+          // Por Fonte
+          const fonteOrder = ["Diretoria","Equipe","Intersetorial","Externa","Própria","Não informado"];
+          const fonteColors = { Diretoria:"#8b5cf6", Equipe:"#10b981", Intersetorial:"#0ea5e9", Externa:"#f59e0b", Própria:"#f43f5e", "Não informado":"#7878a0" };
+          const fonteCounts = {};
+          entries.forEach((t) => { const f = t.fonte || "Não informado"; fonteCounts[f] = (fonteCounts[f] || 0) + 1; });
+          const fLabels = fonteOrder.filter((l) => fonteCounts[l]);
+
+          if (this.chartFonte) this.chartFonte.destroy();
+          this.chartFonte = new Chart(document.getElementById("chart-fonte").getContext("2d"), {
+            type: "doughnut",
+            data: { labels: fLabels, datasets: [{ data: fLabels.map((l) => fonteCounts[l]), backgroundColor: fLabels.map((l) => fonteColors[l]), borderWidth: 0, hoverOffset: 4 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: CO }, title: titleOpts("Por Fonte") } },
+          });
+
+          // Por Tipo
+          const tipoColors = { "Reunião":"#0ea5e9","Estratégia":"#8b5cf6","Gestão de pessoas":"#10b981","Crise":"#f43f5e","Projeto":"#f59e0b","Estudo":"#a78bfa","Operacional":"#7878a0" };
+          const tipoCounts = {};
+          entries.forEach((t) => { if (t.type) tipoCounts[t.type] = (tipoCounts[t.type] || 0) + 1; });
+          const tLabels = Object.keys(tipoCounts).sort((a, b) => tipoCounts[b] - tipoCounts[a]);
+
+          if (this.chartTipo) this.chartTipo.destroy();
+          this.chartTipo = new Chart(document.getElementById("chart-tipo").getContext("2d"), {
+            type: "bar",
+            data: { labels: tLabels, datasets: [{ data: tLabels.map((l) => tipoCounts[l]), backgroundColor: tLabels.map((l) => tipoColors[l] || "#7878a0"), borderRadius: 4 }] },
+            options: { indexAxis: "y", responsive: true, maintainAspectRatio: false, scales: { x: { ticks: tickStyle, grid: { color: gridColor } }, y: { ticks: tickStyle, grid: { display: false } } }, plugins: { legend: { display: false }, title: titleOpts("Por Tipo") } },
+          });
+
+          // Conclusão por Fonte (stacked)
+          const fonteConc = {}, fontePend = {};
+          entries.forEach((t) => {
+            const f = t.fonte || "Não informado";
+            (t.execStatus === "Concluído" || t.delegStatus === "done" ? fonteConc : fontePend)[f] = ((t.execStatus === "Concluído" || t.delegStatus === "done" ? fonteConc : fontePend)[f] || 0) + 1;
+          });
+          const rLabels = [...new Set(entries.map((t) => t.fonte || "Não informado"))];
+
+          if (this.chartFonteRate) this.chartFonteRate.destroy();
+          this.chartFonteRate = new Chart(document.getElementById("chart-fonte-rate").getContext("2d"), {
+            type: "bar",
+            data: { labels: rLabels, datasets: [
+              { label: "Concluídas", data: rLabels.map((l) => fonteConc[l] || 0), backgroundColor: "#10b981", borderRadius: 4 },
+              { label: "Pendentes",  data: rLabels.map((l) => fontePend[l] || 0), backgroundColor: "#1c1c30", borderRadius: 4 },
+            ]},
+            options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true, ticks: tickStyle, grid: { display: false } }, y: { stacked: true, ticks: tickStyle, grid: { color: gridColor } } }, plugins: { legend: { labels: CO }, title: titleOpts("Conclusão por Fonte") } },
+          });
+        },
+
+        renderPriorizacao(entries) {
+          const CO = { color: "#eeeeff", font: { size: 10 }, boxWidth: 10 };
+          const titleOpts = (text) => ({ display: true, text, color: "#eeeeff", font: { size: 12, weight: "600" }, padding: { bottom: 8 } });
+          const gridColor = "rgba(255,255,255,0.05)";
+          const tickStyle = { color: "#7878a0", font: { size: 10 } };
+
+          // Por Quadrante
+          const quadMap = { q1: "Q1 — Fazer Agora", q2: "Q2 — Agendar", q3: "Q3 — Delegar", q4: "Q4 — Eliminar" };
+          const quadColors = { q1: "#f43f5e", q2: "#8b5cf6", q3: "#f59e0b", q4: "#7878a0" };
+          const quadCounts = { q1: 0, q2: 0, q3: 0, q4: 0 };
+          entries.forEach((t) => { if (t.quadrant && quadCounts[t.quadrant] !== undefined) quadCounts[t.quadrant]++; });
+          const qKeys = Object.keys(quadCounts).filter((k) => quadCounts[k] > 0);
+
+          if (this.chartQuadrante) this.chartQuadrante.destroy();
+          this.chartQuadrante = new Chart(document.getElementById("chart-quadrante").getContext("2d"), {
+            type: "doughnut",
+            data: { labels: qKeys.map((k) => quadMap[k]), datasets: [{ data: qKeys.map((k) => quadCounts[k]), backgroundColor: qKeys.map((k) => quadColors[k]), borderWidth: 0, hoverOffset: 4 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: CO }, title: titleOpts("Por Quadrante (Eisenhower)") } },
+          });
+
+          // Score médio por Tipo
+          const scoreSum = {}, scoreN = {};
+          entries.forEach((t) => { if (t.type && t.score != null) { scoreSum[t.type] = (scoreSum[t.type] || 0) + t.score; scoreN[t.type] = (scoreN[t.type] || 0) + 1; } });
+          const sLabels = Object.keys(scoreSum).sort((a, b) => scoreSum[b] / scoreN[b] - scoreSum[a] / scoreN[a]);
+          const sData = sLabels.map((l) => parseFloat((scoreSum[l] / scoreN[l]).toFixed(1)));
+
+          if (this.chartScoreTipo) this.chartScoreTipo.destroy();
+          this.chartScoreTipo = new Chart(document.getElementById("chart-score-tipo").getContext("2d"), {
+            type: "bar",
+            data: { labels: sLabels, datasets: [{ label: "Score médio", data: sData, backgroundColor: "#8b5cf6", borderRadius: 4 }] },
+            options: { indexAxis: "y", responsive: true, maintainAspectRatio: false, scales: { x: { min: 0, max: 10, ticks: tickStyle, grid: { color: gridColor } }, y: { ticks: tickStyle, grid: { display: false } } }, plugins: { legend: { display: false }, title: titleOpts("Score Médio por Tipo") } },
+          });
+        },
+
+        renderDelegacao(entries) {
+          const titleOpts = (text) => ({ display: true, text, color: "#eeeeff", font: { size: 12, weight: "600" }, padding: { bottom: 8 } });
+          const tickStyle = { color: "#7878a0", font: { size: 10 } };
+
+          const delegTasks = entries.filter((t) => (t.category === "delegar" || t.quadrant === "q3") && t.responsavel && t.responsavel.trim());
+          const respCounts = {};
+          delegTasks.forEach((t) => { const r = t.responsavel.trim(); respCounts[r] = (respCounts[r] || 0) + 1; });
+          const dLabels = Object.entries(respCounts).sort((a, b) => b[1] - a[1]).map(([k]) => k);
+
+          const canvas = document.getElementById("chart-delegados");
+          const empty = document.getElementById("chart-delegados-empty");
+          if (this.chartDelegados) this.chartDelegados.destroy();
+
+          if (dLabels.length === 0) {
+            canvas.style.display = "none";
+            empty.style.display = "block";
+            return;
+          }
+          canvas.style.display = "block";
+          empty.style.display = "none";
+
+          this.chartDelegados = new Chart(canvas.getContext("2d"), {
+            type: "bar",
+            data: { labels: dLabels, datasets: [{ label: "Tarefas", data: dLabels.map((l) => respCounts[l]), backgroundColor: "#0ea5e9", borderRadius: 4 }] },
+            options: { indexAxis: "y", responsive: true, maintainAspectRatio: false, scales: { x: { ticks: tickStyle, grid: { color: "rgba(255,255,255,0.05)" } }, y: { ticks: tickStyle, grid: { display: false } } }, plugins: { legend: { display: false }, title: titleOpts("Delegadas por Responsável") } },
+          });
+        },
+
         renderHistory() {
           const container = document.getElementById("history-container");
           const items = [];
