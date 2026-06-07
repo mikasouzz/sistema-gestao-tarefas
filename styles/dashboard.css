@@ -1,0 +1,91 @@
+/* ─── DASHBOARD ───────────────────────────────────── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.kpi-card {
+  background: var(--bg-elevated);
+  padding: 22px 22px 20px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+  transition: var(--transition);
+}
+.kpi-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(to right, var(--primary), var(--primary-light));
+}
+.kpi-card:hover {
+  border-color: var(--border-strong);
+}
+
+.kpi-value {
+  font-size: 2.1rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--text-primary) 30%, var(--primary-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 9px 0 3px;
+  line-height: 1.1;
+}
+.kpi-label {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+.charts-grid-3 {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+.dash-section-label {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 14px;
+}
+.chart-container {
+  background: var(--bg-elevated);
+  padding: 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  max-height: 220px;
+}
+.chart-container canvas {
+  max-height: 180px !important;
+}
+.history-list {
+  background: var(--bg-elevated);
+  padding: 22px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.history-item {
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.865rem;
+}
+.history-item:last-child {
+  border-bottom: none;
+}

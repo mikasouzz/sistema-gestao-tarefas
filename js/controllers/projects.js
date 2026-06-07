@@ -1,0 +1,121 @@
+import { AppState } from "../state.js";
+import { App } from "../app.js";
+import { Toast, ConfirmModal } from "../toast.js";
+import { SyncCtrl } from "../sync.js";
+import { ExecCtrl } from "./exec.js";
+
+export const ProjCtrl = {
+  addProject() {
+    const title = document.getElementById("proj-title").value;
+    if (!title) return;
+    AppState.projects.push({
+      id: App.generateId(),
+      title,
+      desc: document.getElementById("proj-desc").value,
+      term: document.getElementById("proj-term").value,
+      status: "plan",
+      updatedAt: new Date().toISOString(),
+    });
+    App.save();
+    this.render();
+    document.getElementById("modal-project").classList.remove("active");
+    document.getElementById("proj-title").value = "";
+    document.getElementById("proj-desc").value  = "";
+  },
+
+  updateStatus(id, newStatus) {
+    const p = AppState.projects.find((x) => x.id === id);
+    if (p) {
+      p.status = newStatus;
+      if (newStatus === "done") {
+        p.completedAt = new Date().toISOString().split("T")[0];
+        Toast.show("Projeto marcado como concluído!", "success");
+      }
+      App.touch(p);
+      App.save();
+      this.render();
+    }
+  },
+
+  toggleSubtask(projectId, subtaskId, done) {
+    const project = AppState.projects.find((p) => p.id === projectId);
+    if (!project || !project.subtasks) return;
+    const subtask = project.subtasks.find((s) => s.id === subtaskId);
+    if (!subtask) return;
+
+    subtask.done = done;
+
+    const task = AppState.tasks.find(
+      (t) => t.projectId === projectId && t.subtaskId === subtaskId,
+    );
+    if (task) {
+      if (done) {
+        const today         = new Date().toISOString().split("T")[0];
+        task.execStatus      = "Concluído";
+        task.execCompletedAt = today;
+        task.done            = true;
+      } else {
+        task.execStatus      = task.execDate ? "Pendente" : null;
+        task.execCompletedAt = null;
+        task.done            = false;
+      }
+      App.touch(task);
+      ExecCtrl.renderTaskList();
+      ExecCtrl.renderTable();
+    }
+
+    App.touch(project);
+    App.save();
+    this.render();
+  },
+
+  delete(id) {
+    ConfirmModal.open(
+      "Excluir Projeto",
+      "Tem certeza que deseja excluir este projeto? Esta ação não pode ser desfeita.",
+      () => {
+        AppState.projects = AppState.projects.filter((p) => p.id !== id);
+        App.save();
+        this.render();
+        Toast.show("Projeto excluído.", "primary");
+        SyncCtrl.deleteProject(id);
+      },
+    );
+  },
+
+  render() {
+    ["plan", "prog", "done"].forEach((status) => {
+      const col = document.getElementById(`proj-col-${status}`);
+      col.innerHTML = "";
+      const items = AppState.projects.filter((p) => p.status === status);
+      document.getElementById(`proj-count-${status}`).innerText = items.length;
+
+      items.forEach((p) => {
+        const subtasks     = p.subtasks || [];
+        const subtasksHtml = subtasks.length > 0
+          ? `<div style="margin-top:10px; border-top:1px solid var(--border); padding-top:10px; display:flex; flex-direction:column; gap:5px;">
+              <span style="font-size:0.68rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:2px;">Tarefas Associadas</span>
+              ${subtasks.map((st) => `
+                <div style="display:flex; align-items:center; gap:7px;">
+                  <input type="checkbox" ${st.done ? "checked" : ""} onchange="ProjCtrl.toggleSubtask('${p.id}','${st.id}',this.checked)"
+                    style="width:14px; height:14px; accent-color:var(--primary-mid); cursor:pointer; flex-shrink:0;">
+                  <span style="font-size:0.77rem; color:${st.done ? "var(--text-secondary)" : "var(--text-primary)"}; text-decoration:${st.done ? "line-through" : "none"};">${st.title}</span>
+                </div>`).join("")}
+             </div>`
+          : "";
+        col.innerHTML += `
+          <div class="kanban-card project-card" draggable="true" id="proj-${p.id}" data-type="project">
+            <div class="flex justify-between align-center">
+              <h4>${p.title}</h4>
+              <span style="cursor:pointer; color:var(--text-secondary); font-size:0.85rem;" onclick="ProjCtrl.delete('${p.id}')">✕</span>
+            </div>
+            <p>${p.desc.substring(0, 50)}${p.desc.length > 50 ? "..." : ""}</p>
+            <span class="badge" style="background:var(--bg-surface-2); color:var(--text-secondary); border:1px solid var(--border);">${p.term}</span>
+            ${subtasksHtml}
+          </div>`;
+      });
+    });
+  },
+};
+
+window.ProjCtrl = ProjCtrl;

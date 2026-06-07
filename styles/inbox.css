@@ -1,0 +1,30 @@
+/* ─── MODULE 1: INBOX ─────────────────────────────── */
+.input-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+.input-group input {
+  flex: 1;
+}
+
+.inbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.inbox-item {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  padding: 15px 18px;
+  border-radius: var(--radius);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: var(--transition);
+}
+.inbox-item:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-surface);
+}
