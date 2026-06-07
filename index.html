@@ -9,6 +9,7 @@
       rel="stylesheet"
     />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
       :root {
         --bg-base: #08080f;
@@ -1027,6 +1028,43 @@
         margin-bottom: 5px;
       }
 
+      /* ─── AUTH SCREEN ────────────────────────────── */
+      #auth-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 1001;
+        background: var(--bg-base);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .auth-card {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-strong);
+        border-radius: var(--radius-lg);
+        padding: 42px 38px;
+        width: 100%;
+        max-width: 360px;
+        box-shadow: var(--shadow-lg);
+        text-align: center;
+      }
+      .auth-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+      .auth-subtitle {
+        font-size: 0.82rem;
+        color: var(--text-secondary);
+        margin-bottom: 28px;
+      }
+      #auth-error {
+        color: var(--danger);
+        font-size: 0.78rem;
+        margin-top: 10px;
+        min-height: 18px;
+      }
+
       /* ─── CORTINA (SPLASH OVERLAY) ───────────────── */
       #app-curtain {
         position: fixed;
@@ -1475,7 +1513,10 @@
         </div>
       </nav>
 
-      <div class="sidebar-footer">LeadManager v1.0 · 2026</div>
+      <div class="sidebar-footer" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>LeadManager v1.0 · 2026</span>
+        <span onclick="db.auth.signOut().then(() => location.reload())" style="cursor:pointer;color:var(--text-secondary);font-size:0.65rem;" title="Sair da conta">↩ Sair</span>
+      </div>
     </aside>
 
     <!-- Main Content -->
@@ -2150,6 +2191,27 @@
     <!-- Container de Notificações (Toasts) -->
     <div id="toast-container" class="toast-container"></div>
 
+    <!-- Tela de Autenticação -->
+    <div id="auth-screen">
+      <div class="auth-card">
+        <div style="width:52px;height:52px;background:linear-gradient(135deg,var(--primary),var(--primary-light));border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 22px;box-shadow:0 0 32px rgba(124,58,237,0.4);">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        </div>
+        <h2 class="auth-title">Gestão de Tarefas</h2>
+        <p class="auth-subtitle">Mikaella Souza &nbsp;·&nbsp; Supervisão</p>
+        <form id="auth-form">
+          <input type="email" id="auth-email" placeholder="E-mail" autocomplete="email" required style="margin-bottom:10px;">
+          <input type="password" id="auth-password" placeholder="Senha" autocomplete="current-password" required style="margin-bottom:18px;">
+          <button type="submit" id="auth-btn" class="btn btn-primary" style="width:100%;justify-content:center;padding:11px;">Entrar</button>
+          <p id="auth-error"></p>
+        </form>
+      </div>
+    </div>
+
     <!-- Cortina de Entrada -->
     <div id="app-curtain">
       <div class="curtain-content">
@@ -2231,6 +2293,11 @@
       /**
        * ESTADO GLOBAL E PERSISTÊNCIA (CRÍTICO)
        */
+      // ─── SUPABASE ──────────────────────────────────────────────────────────
+      const SUPABASE_URL  = "https://tcegnkvivvjzbkealeno.supabase.co";
+      const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjZWdua3ZpdnZqemJrZWFsZW5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3ODk2OTQsImV4cCI6MjA5NjM2NTY5NH0.DowowhInp7nxRrrw6FLTHXq-Kn3ftQTFIlFuVBodJnU";
+      const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
       const STORAGE_KEY = "leadManagerData_v1";
       const ARCHIVE_KEY = "leadManagerData_archive_v1";
 
@@ -2245,6 +2312,142 @@
 
       let AppArchive =
         JSON.parse(localStorage.getItem(ARCHIVE_KEY)) || { tasks: [] };
+
+      // ─── SYNC CONTROLLER ───────────────────────────────────────────────────
+      const SyncCtrl = {
+        userId: null,
+
+        _taskToRow(t, archived = false) {
+          return {
+            id: t.id,
+            user_id: this.userId,
+            text: t.text,
+            created_at: t.createdAt || new Date().toISOString(),
+            done: t.done || false,
+            type: t.type || null,
+            category: t.category || null,
+            fonte: t.fonte || null,
+            score: t.score ?? null,
+            quadrant: t.quadrant || null,
+            project_id: t.projectId || null,
+            subtask_id: t.subtaskId || null,
+            exec_date: t.execDate || null,
+            exec_day: t.execDay || null,
+            exec_time: t.execTime || null,
+            exec_status: t.execStatus || null,
+            exec_completed_at: t.execCompletedAt || null,
+            responsavel: t.responsavel || null,
+            deleg_status: t.delegStatus || null,
+            deleg_completed_at: t.delegCompletedAt || null,
+            archived,
+          };
+        },
+
+        _rowToTask(row) {
+          return {
+            id: row.id,
+            text: row.text,
+            createdAt: row.created_at,
+            done: row.done,
+            type: row.type,
+            category: row.category,
+            fonte: row.fonte,
+            score: row.score,
+            quadrant: row.quadrant,
+            projectId: row.project_id,
+            subtaskId: row.subtask_id,
+            execDate: row.exec_date,
+            execDay: row.exec_day,
+            execTime: row.exec_time,
+            execStatus: row.exec_status,
+            execCompletedAt: row.exec_completed_at,
+            responsavel: row.responsavel,
+            delegStatus: row.deleg_status,
+            delegCompletedAt: row.deleg_completed_at,
+          };
+        },
+
+        _projectToRow(p) {
+          return {
+            id: p.id,
+            user_id: this.userId,
+            title: p.title,
+            description: p.desc || "",
+            term: p.term,
+            status: p.status,
+            completed_at: p.completedAt || null,
+            subtasks: p.subtasks || [],
+          };
+        },
+
+        _rowToProject(row) {
+          return {
+            id: row.id,
+            title: row.title,
+            desc: row.description,
+            term: row.term,
+            status: row.status,
+            completedAt: row.completed_at,
+            subtasks: row.subtasks || [],
+          };
+        },
+
+        async loadAll() {
+          const [{ data: tasks, error: e1 }, { data: projects, error: e2 }] =
+            await Promise.all([
+              db.from("tasks").select("*").eq("user_id", this.userId),
+              db.from("projects").select("*").eq("user_id", this.userId),
+            ]);
+
+          if (e1 || e2) throw new Error(e1?.message || e2?.message);
+
+          // Sem dados no Supabase → sobe o que está local
+          if (!tasks.length && !projects.length) {
+            await this.pushAll();
+            return;
+          }
+
+          AppState.tasks    = tasks.filter((t) => !t.archived).map((t) => this._rowToTask(t));
+          AppState.projects = projects.map((p) => this._rowToProject(p));
+          AppArchive.tasks  = tasks.filter((t) => t.archived).map((t) => this._rowToTask(t));
+
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(AppState));
+          localStorage.setItem(ARCHIVE_KEY, JSON.stringify(AppArchive));
+        },
+
+        async pushAll() {
+          if (!this.userId) return;
+          const taskRows = [
+            ...AppState.tasks.map((t) => this._taskToRow(t, false)),
+            ...AppArchive.tasks.map((t) => this._taskToRow(t, true)),
+          ];
+          const projRows = AppState.projects.map((p) => this._projectToRow(p));
+
+          await Promise.all([
+            db.from("tasks").upsert(taskRows, { onConflict: "id" }),
+            db.from("projects").upsert(projRows, { onConflict: "id" }),
+          ]);
+        },
+
+        async deleteTask(id) {
+          if (!navigator.onLine || !this.userId) return;
+          await db.from("tasks").delete().eq("id", id).eq("user_id", this.userId);
+        },
+
+        async deleteProject(id) {
+          if (!navigator.onLine || !this.userId) return;
+          await db.from("projects").delete().eq("id", id).eq("user_id", this.userId);
+        },
+
+        async syncInBackground() {
+          if (!navigator.onLine || !this.userId) return;
+          try {
+            await this.pushAll();
+          } catch (e) {
+            console.warn("[Sync] Falha:", e.message);
+          }
+        },
+      };
 
       const App = {
         navigate(targetId) {
@@ -2272,11 +2475,13 @@
 
           this.setupDragAndDrop();
         },
-        save() {
+        save(skipSync = false) {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(AppState));
+          if (!skipSync) SyncCtrl.syncInBackground();
         },
-        saveArchive() {
+        saveArchive(skipSync = false) {
           localStorage.setItem(ARCHIVE_KEY, JSON.stringify(AppArchive));
+          if (!skipSync) SyncCtrl.syncInBackground();
         },
         archiveOldTasks() {
           const cutoff = new Date();
@@ -2427,25 +2632,26 @@
               const file = e.target.files[0];
               if (!file) return;
               const reader = new FileReader();
-              reader.onload = function (e) {
+              reader.onload = async function (e) {
                 try {
                   const parsed = JSON.parse(e.target.result);
-                  // Novo formato: { state, archive }
                   if (parsed.state) {
                     AppState = parsed.state;
                     AppArchive = parsed.archive || { tasks: [] };
-                    App.save();
-                    App.saveArchive();
+                    App.save(true);
+                    App.saveArchive(true);
                   } else {
-                    // Formato legado: só AppState direto
                     AppState = parsed;
-                    App.save();
+                    App.save(true);
                   }
-                  Toast.show(
-                    "Backup importado com sucesso! Atualizando...",
-                    "success",
-                  );
-                  setTimeout(() => location.reload(), 1500);
+                  Toast.show("Sincronizando backup com a nuvem...", "primary");
+                  try {
+                    await SyncCtrl.pushAll();
+                  } catch (syncErr) {
+                    console.warn("[Import] Push falhou, dados salvos localmente:", syncErr.message);
+                  }
+                  Toast.show("Backup importado com sucesso! Atualizando...", "success");
+                  setTimeout(() => location.reload(), 1000);
                 } catch (err) {
                   Toast.show("Erro ao ler o arquivo JSON.", "error");
                 }
@@ -2457,11 +2663,17 @@
           ConfirmModal.open(
             "Limpar Histórico",
             "ATENÇÃO: Deseja mesmo apagar TODOS os dados do sistema? Esta ação não pode ser desfeita.",
-            () => {
+            async () => {
+              if (navigator.onLine && SyncCtrl.userId) {
+                await Promise.all([
+                  db.from("tasks").delete().eq("user_id", SyncCtrl.userId),
+                  db.from("projects").delete().eq("user_id", SyncCtrl.userId),
+                ]);
+              }
               AppState = JSON.parse(JSON.stringify(defaultState));
               AppArchive = { tasks: [] };
-              App.save();
-              App.saveArchive();
+              App.save(true);
+              App.saveArchive(true);
               Toast.show("Dados apagados. Atualizando...", "warning");
               setTimeout(() => location.reload(), 1500);
             },
@@ -2626,6 +2838,7 @@
           AppState.tasks = AppState.tasks.filter((t) => t.id !== id);
           App.save();
           this.render();
+          SyncCtrl.deleteTask(id);
         },
         goToTriage(id) {
           document.querySelector('.nav-item[data-target="mod-triage"]').click();
@@ -3229,6 +3442,7 @@
               App.save();
               this.render();
               Toast.show("Projeto excluído.", "primary");
+              SyncCtrl.deleteProject(id);
             },
           );
         },
@@ -3789,7 +4003,51 @@
       };
 
       // Initialize App on Load
-      window.onload = () => App.init();
+      window.onload = async () => {
+        const authScreen = document.getElementById("auth-screen");
+        const authForm   = document.getElementById("auth-form");
+        const authBtn    = document.getElementById("auth-btn");
+        const authError  = document.getElementById("auth-error");
+
+        const hideAuth = () => { authScreen.style.display = "none"; };
+
+        const bootApp = async (userId) => {
+          SyncCtrl.userId = userId;
+          hideAuth();
+          try {
+            await SyncCtrl.loadAll();
+          } catch (e) {
+            console.warn("[Sync] loadAll falhou, usando local:", e.message);
+          }
+          App.init();
+        };
+
+        const { data: { session } } = await db.auth.getSession();
+
+        if (session) {
+          await bootApp(session.user.id);
+        } else {
+          authScreen.style.display = "flex";
+          authForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            authBtn.disabled = true;
+            authError.textContent = "";
+            const email    = document.getElementById("auth-email").value.trim();
+            const password = document.getElementById("auth-password").value;
+            const { data, error } = await db.auth.signInWithPassword({ email, password });
+            if (error) {
+              authError.textContent = error.message;
+              authBtn.disabled = false;
+              return;
+            }
+            await bootApp(data.user.id);
+          });
+        }
+
+        window.addEventListener("online", () => {
+          if (SyncCtrl.userId) SyncCtrl.syncInBackground();
+        });
+      };
     </script>
   </body>
 </html>
