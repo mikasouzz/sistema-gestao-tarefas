@@ -198,6 +198,36 @@
         font-size: 0.67rem;
         color: var(--text-tertiary);
         letter-spacing: 0.03em;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .sync-status-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        transition: color 0.15s;
+      }
+      .sync-status-btn:hover { color: var(--text-secondary); }
+      .sync-status-btn.no-action { cursor: default; }
+      .sync-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--text-tertiary);
+        flex-shrink: 0;
+        transition: background 0.3s;
+      }
+      .sync-dot.syncing {
+        background: var(--warning);
+        animation: sync-pulse 1.2s ease-in-out infinite;
+      }
+      .sync-dot.synced { background: var(--accent); }
+      .sync-dot.error { background: var(--danger); }
+      @keyframes sync-pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
       }
 
       /* ─── TOPBAR ──────────────────────────────────────── */
@@ -1033,11 +1063,28 @@
         position: fixed;
         inset: 0;
         z-index: 1001;
-        background: var(--bg-base);
-        display: flex;
+        background: rgba(8, 8, 15, 0.82);
+        backdrop-filter: blur(5px);
+        display: none;
         align-items: center;
         justify-content: center;
       }
+      #auth-screen.open { display: flex; }
+      .auth-close-btn {
+        position: absolute;
+        top: 12px;
+        right: 14px;
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        cursor: pointer;
+        font-size: 1.1rem;
+        line-height: 1;
+        padding: 4px;
+        border-radius: 4px;
+        transition: color 0.15s;
+      }
+      .auth-close-btn:hover { color: var(--text-primary); }
       .auth-card {
         background: var(--bg-elevated);
         border: 1px solid var(--border-strong);
@@ -1513,9 +1560,12 @@
         </div>
       </nav>
 
-      <div class="sidebar-footer" style="display:flex;justify-content:space-between;align-items:center;">
-        <span>LeadManager v1.0 · 2026</span>
-        <span onclick="db.auth.signOut().then(() => location.reload())" style="cursor:pointer;color:var(--text-secondary);font-size:0.65rem;" title="Sair da conta">↩ Sair</span>
+      <div class="sidebar-footer">
+        <div id="sync-status-btn" class="sync-status-btn" onclick="SyncCtrl.openLogin()">
+          <span class="sync-dot" id="sync-dot"></span>
+          <span id="sync-label">Não conectado</span>
+        </div>
+        <span id="sync-logout" onclick="SyncCtrl.logout()" style="display:none;cursor:pointer;color:var(--text-secondary);font-size:0.65rem;" title="Sair da conta">↩ Sair</span>
       </div>
     </aside>
 
@@ -2192,8 +2242,9 @@
     <div id="toast-container" class="toast-container"></div>
 
     <!-- Tela de Autenticação -->
-    <div id="auth-screen">
-      <div class="auth-card">
+    <div id="auth-screen" onclick="if(event.target===this)SyncCtrl.closeLogin()">
+      <div class="auth-card" style="position:relative;">
+        <button class="auth-close-btn" onclick="SyncCtrl.closeLogin()" title="Fechar">✕</button>
         <div style="width:52px;height:52px;background:linear-gradient(135deg,var(--primary),var(--primary-light));border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 22px;box-shadow:0 0 32px rgba(124,58,237,0.4);">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
@@ -2323,6 +2374,7 @@
             user_id: this.userId,
             text: t.text,
             created_at: t.createdAt || new Date().toISOString(),
+            updated_at: t.updatedAt || t.createdAt || new Date().toISOString(),
             done: t.done || false,
             type: t.type || null,
             category: t.category || null,
@@ -2348,6 +2400,7 @@
             id: row.id,
             text: row.text,
             createdAt: row.created_at,
+            updatedAt: row.updated_at,
             done: row.done,
             type: row.type,
             category: row.category,
@@ -2376,6 +2429,7 @@
             term: p.term,
             status: p.status,
             completed_at: p.completedAt || null,
+            updated_at: p.updatedAt || new Date().toISOString(),
             subtasks: p.subtasks || [],
           };
         },
@@ -2388,12 +2442,13 @@
             term: row.term,
             status: row.status,
             completedAt: row.completed_at,
+            updatedAt: row.updated_at,
             subtasks: row.subtasks || [],
           };
         },
 
         async loadAll() {
-          const [{ data: tasks, error: e1 }, { data: projects, error: e2 }] =
+          const [{ data: remoteTasks, error: e1 }, { data: remoteProjects, error: e2 }] =
             await Promise.all([
               db.from("tasks").select("*").eq("user_id", this.userId),
               db.from("projects").select("*").eq("user_id", this.userId),
@@ -2401,18 +2456,64 @@
 
           if (e1 || e2) throw new Error(e1?.message || e2?.message);
 
-          // Sem dados no Supabase → sobe o que está local
-          if (!tasks.length && !projects.length) {
-            await this.pushAll();
-            return;
+          // Merge tasks por ID: vence o updated_at mais recente
+          const localAll = [
+            ...AppState.tasks.map((t) => ({ ...t, _arc: false })),
+            ...AppArchive.tasks.map((t) => ({ ...t, _arc: true })),
+          ];
+          const remoteMap = new Map(remoteTasks.map((r) => [r.id, r]));
+          const localMap  = new Map(localAll.map((t) => [t.id, t]));
+          const allIds    = new Set([...remoteMap.keys(), ...localMap.keys()]);
+
+          const mergedActive = [], mergedArchived = [];
+          for (const id of allIds) {
+            const remote = remoteMap.get(id);
+            const local  = localMap.get(id);
+            let winner;
+            if (!remote) {
+              winner = local;
+            } else if (!local) {
+              winner = { ...this._rowToTask(remote), _arc: remote.archived };
+            } else {
+              const rt = remote.updated_at || remote.created_at || "0";
+              const lt = local.updatedAt   || local.createdAt   || "0";
+              winner = rt > lt
+                ? { ...this._rowToTask(remote), _arc: remote.archived }
+                : local;
+            }
+            const { _arc, ...task } = winner;
+            (_arc ? mergedArchived : mergedActive).push(task);
           }
 
-          AppState.tasks    = tasks.filter((t) => !t.archived).map((t) => this._rowToTask(t));
-          AppState.projects = projects.map((p) => this._rowToProject(p));
-          AppArchive.tasks  = tasks.filter((t) => t.archived).map((t) => this._rowToTask(t));
+          // Merge projects por ID
+          const remotePMap = new Map(remoteProjects.map((r) => [r.id, r]));
+          const localPMap  = new Map(AppState.projects.map((p) => [p.id, p]));
+          const allPIds    = new Set([...remotePMap.keys(), ...localPMap.keys()]);
+
+          const mergedProjects = [];
+          for (const id of allPIds) {
+            const remote = remotePMap.get(id);
+            const local  = localPMap.get(id);
+            if (!remote) {
+              mergedProjects.push(local);
+            } else if (!local) {
+              mergedProjects.push(this._rowToProject(remote));
+            } else {
+              const rt = remote.updated_at || "0";
+              const lt = local.updatedAt   || "0";
+              mergedProjects.push(rt > lt ? this._rowToProject(remote) : local);
+            }
+          }
+
+          AppState.tasks    = mergedActive;
+          AppState.projects = mergedProjects;
+          AppArchive.tasks  = mergedArchived;
 
           localStorage.setItem(STORAGE_KEY, JSON.stringify(AppState));
           localStorage.setItem(ARCHIVE_KEY, JSON.stringify(AppArchive));
+
+          // Sobe o estado mesclado para o Supabase
+          await this.pushAll();
         },
 
         async pushAll() {
@@ -2441,11 +2542,89 @@
 
         async syncInBackground() {
           if (!navigator.onLine || !this.userId) return;
+          this.setStatus("syncing");
           try {
             await this.pushAll();
+            this.setStatus("synced");
           } catch (e) {
+            this.setStatus("error");
             console.warn("[Sync] Falha:", e.message);
           }
+        },
+
+        setStatus(s) {
+          const dot       = document.getElementById("sync-dot");
+          const label     = document.getElementById("sync-label");
+          const btn       = document.getElementById("sync-status-btn");
+          const logoutBtn = document.getElementById("sync-logout");
+          if (!dot || !label) return;
+          dot.className = "sync-dot";
+          if (s === "idle") {
+            label.textContent = "Não conectado";
+            if (btn) { btn.classList.remove("no-action"); btn.onclick = () => SyncCtrl.openLogin(); }
+            if (logoutBtn) logoutBtn.style.display = "none";
+          } else if (s === "syncing") {
+            dot.classList.add("syncing");
+            label.textContent = "Sincronizando…";
+            if (btn) { btn.classList.add("no-action"); btn.onclick = null; }
+            if (logoutBtn) logoutBtn.style.display = "none";
+          } else if (s === "synced") {
+            dot.classList.add("synced");
+            label.textContent = "Sincronizado";
+            if (btn) { btn.classList.add("no-action"); btn.onclick = null; }
+            if (logoutBtn) logoutBtn.style.display = "inline";
+          } else if (s === "error") {
+            dot.classList.add("error");
+            label.textContent = "Erro ao sincronizar";
+            if (btn) { btn.classList.remove("no-action"); btn.onclick = () => SyncCtrl.openLogin(); }
+            if (logoutBtn) logoutBtn.style.display = "none";
+          }
+        },
+
+        openLogin() {
+          document.getElementById("auth-screen").classList.add("open");
+        },
+
+        closeLogin() {
+          document.getElementById("auth-screen").classList.remove("open");
+          document.getElementById("auth-error").textContent = "";
+        },
+
+        async logout() {
+          await db.auth.signOut();
+          this.userId = null;
+          this.setStatus("idle");
+        },
+
+        _initAuthForm() {
+          const authForm  = document.getElementById("auth-form");
+          const authBtn   = document.getElementById("auth-btn");
+          const authError = document.getElementById("auth-error");
+          authForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            authBtn.disabled = true;
+            authError.textContent = "";
+            const email    = document.getElementById("auth-email").value.trim();
+            const password = document.getElementById("auth-password").value;
+            const { data, error } = await db.auth.signInWithPassword({ email, password });
+            if (error) {
+              authError.textContent = error.message;
+              authBtn.disabled = false;
+              return;
+            }
+            this.closeLogin();
+            this.userId = data.user.id;
+            this.setStatus("syncing");
+            try {
+              await this.loadAll();
+              this.setStatus("synced");
+              App.rerender();
+            } catch (err) {
+              this.setStatus("error");
+              console.warn("[Sync] loadAll falhou:", err.message);
+            }
+            authBtn.disabled = false;
+          });
         },
       };
 
@@ -2457,23 +2636,32 @@
         },
         init() {
           this.migrateIfNeeded();
-          this.archiveOldTasks();
+          this.migrateUpdatedAt();
           this.bindNav();
           this.setupFileImport();
           this.setDefaultMonths();
 
           Curtain.init();
+          this.rerender();
+          ExecCtrl.init();
+
+          this.setupDragAndDrop();
+        },
+
+        rerender() {
+          this.archiveOldTasks();
           HomeCtrl.render();
           InboxCtrl.render();
           TriageCtrl.renderCriteria();
           TriageCtrl.updateDropdown();
-          ExecCtrl.init();
           ExecCtrl.renderTaskList();
           ExecCtrl.renderTable();
           ProjCtrl.render();
           MonCtrl.render();
-
-          this.setupDragAndDrop();
+        },
+        touch(...objs) {
+          const now = new Date().toISOString();
+          objs.forEach((o) => { if (o) o.updatedAt = now; });
         },
         save(skipSync = false) {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(AppState));
@@ -2482,6 +2670,20 @@
         saveArchive(skipSync = false) {
           localStorage.setItem(ARCHIVE_KEY, JSON.stringify(AppArchive));
           if (!skipSync) SyncCtrl.syncInBackground();
+        },
+        migrateUpdatedAt() {
+          const now = new Date().toISOString();
+          let dirty = false;
+          [...AppState.tasks, ...AppArchive.tasks].forEach((t) => {
+            if (!t.updatedAt) { t.updatedAt = t.createdAt || now; dirty = true; }
+          });
+          AppState.projects.forEach((p) => {
+            if (!p.updatedAt) { p.updatedAt = now; dirty = true; }
+          });
+          if (dirty) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(AppState));
+            localStorage.setItem(ARCHIVE_KEY, JSON.stringify(AppArchive));
+          }
         },
         archiveOldTasks() {
           const cutoff = new Date();
@@ -2810,6 +3012,7 @@
               desc: "Criado via Caixa de Entrada",
               term: "Curto Prazo",
               status: "plan",
+              updatedAt: new Date().toISOString(),
             });
             ProjCtrl.render();
             Toast.show("Demanda enviada diretamente para Projetos!", "success");
@@ -2825,6 +3028,7 @@
               id: App.generateId(),
               text,
               createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
               done: false,
             });
             Toast.show("Adicionado à Caixa de Entrada.", "primary");
@@ -3016,6 +3220,7 @@
           task.fonte = document.getElementById("triage-fonte").value;
           task.score = evalData.score;
           task.quadrant = evalData.quad;
+          App.touch(task);
 
           if (evalData.quad === "q3" || task.category === "delegar") {
             task.responsavel = "";
@@ -3279,6 +3484,7 @@
           const days = ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
           task.execDate = newDate;
           task.execDay = days[d.getDay()];
+          App.touch(task);
           App.save();
           this.renderTaskList();
           this.renderTable();
@@ -3298,6 +3504,7 @@
           task.execDate = dateIso;
           task.execDay = dayName;
           task.execTime = time;
+          App.touch(task);
           App.save();
           this.renderTaskList();
           this.renderTable();
@@ -3312,6 +3519,7 @@
           task.execDay = dayName;
           task.execTime = time;
           task.execStatus = "Pendente";
+          App.touch(task);
           App.save();
           this.selectedTaskId = null;
           this.renderTaskList();
@@ -3331,6 +3539,7 @@
 
           if (newStatus !== "Concluído") {
             task.execStatus = newStatus;
+            App.touch(task);
             App.save();
             this.renderTaskList();
             this.renderTable();
@@ -3353,6 +3562,7 @@
             }
           }
 
+          App.touch(task);
           App.save();
           this.renderTaskList();
           this.renderTable();
@@ -3366,6 +3576,7 @@
           task.execDay = null;
           task.execTime = null;
           task.execStatus = null;
+          App.touch(task);
           App.save();
           this.renderTaskList();
           this.renderTable();
@@ -3385,6 +3596,7 @@
             desc: document.getElementById("proj-desc").value,
             term: document.getElementById("proj-term").value,
             status: "plan",
+            updatedAt: new Date().toISOString(),
           });
           App.save();
           this.render();
@@ -3400,6 +3612,7 @@
               p.completedAt = new Date().toISOString().split("T")[0];
               Toast.show("Projeto marcado como concluído!", "success");
             }
+            App.touch(p);
             App.save();
             this.render();
           }
@@ -3426,10 +3639,12 @@
               task.execCompletedAt = null;
               task.done = false;
             }
+            App.touch(task);
             ExecCtrl.renderTaskList();
             ExecCtrl.renderTable();
           }
 
+          App.touch(project);
           App.save();
           this.render();
         },
@@ -3502,6 +3717,7 @@
           } else {
             task.delegStatus = newStatus;
           }
+          App.touch(task);
           App.save();
           this.render();
         },
@@ -3509,6 +3725,7 @@
           const task = AppState.tasks.find((t) => t.id === id);
           if (task) {
             task.responsavel = val;
+            App.touch(task);
             App.save();
           }
         },
@@ -4004,44 +4221,23 @@
 
       // Initialize App on Load
       window.onload = async () => {
-        const authScreen = document.getElementById("auth-screen");
-        const authForm   = document.getElementById("auth-form");
-        const authBtn    = document.getElementById("auth-btn");
-        const authError  = document.getElementById("auth-error");
+        // Boot imediato com dados locais — não bloqueia em login
+        App.init();
+        SyncCtrl._initAuthForm();
 
-        const hideAuth = () => { authScreen.style.display = "none"; };
-
-        const bootApp = async (userId) => {
-          SyncCtrl.userId = userId;
-          hideAuth();
+        // Tenta sessão existente em background
+        const { data: { session } } = await db.auth.getSession();
+        if (session) {
+          SyncCtrl.userId = session.user.id;
+          SyncCtrl.setStatus("syncing");
           try {
             await SyncCtrl.loadAll();
+            SyncCtrl.setStatus("synced");
+            App.rerender();
           } catch (e) {
+            SyncCtrl.setStatus("error");
             console.warn("[Sync] loadAll falhou, usando local:", e.message);
           }
-          App.init();
-        };
-
-        const { data: { session } } = await db.auth.getSession();
-
-        if (session) {
-          await bootApp(session.user.id);
-        } else {
-          authScreen.style.display = "flex";
-          authForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            authBtn.disabled = true;
-            authError.textContent = "";
-            const email    = document.getElementById("auth-email").value.trim();
-            const password = document.getElementById("auth-password").value;
-            const { data, error } = await db.auth.signInWithPassword({ email, password });
-            if (error) {
-              authError.textContent = error.message;
-              authBtn.disabled = false;
-              return;
-            }
-            await bootApp(data.user.id);
-          });
         }
 
         window.addEventListener("online", () => {
