@@ -3297,12 +3297,11 @@
         chartMonth: null,
         execMonth(month) {
           const seen = new Map();
-          // Tarefas do calendário agendadas neste mês
-          AppState.tasks
+          const allTasks = [...AppState.tasks, ...AppArchive.tasks];
+          allTasks
             .filter((t) => t.execDate && t.execDate.substring(0, 7) === month)
             .forEach((t) => seen.set(t.id, t));
-          // Tarefas delegadas: concluídas neste mês ou ativas e criadas neste mês
-          AppState.tasks
+          allTasks
             .filter((t) => t.category === "delegar" || t.quadrant === "q3")
             .forEach((t) => {
               const doneInMonth =
