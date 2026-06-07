@@ -1126,12 +1126,8 @@
       const STORAGE_KEY = "leadManagerData_v1";
 
       const defaultState = {
-        inbox: [],
-        triaged: [],
-        execution: [], // {id, taskId, title, day, time, status, month}
-        projects: [], // {id, title, desc, term, status}
-        delegated: [], // {id, originalId, title, resp, status}
-        history: [], // {id, title, date, type}
+        tasks: [],    // lista única: inbox + triaged + execution + delegated + history
+        projects: [],
       };
 
       let AppState =
@@ -1140,11 +1136,11 @@
 
       const App = {
         init() {
+          this.migrateIfNeeded();
           this.bindNav();
           this.setupFileImport();
           this.setDefaultMonths();
 
-          // Init Modules
           InboxCtrl.render();
           TriageCtrl.renderCriteria();
           TriageCtrl.updateDropdown();
@@ -1154,17 +1150,70 @@
           ProjCtrl.render();
           MonCtrl.render();
 
-          // Drag & Drop Global Events Setup
           this.setupDragAndDrop();
         },
         save() {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(AppState));
-          this.triggerAutoJSON(); // Simula o requisito de background JSON
-        },
-        triggerAutoJSON() {
-          // Em um ambiente real isso poderia enviar para um servidor.
-          // Aqui apenas garantimos que o estado memory=storage está 100% sync.
           console.log("[Auto-Sync] Estado persistido localmente.");
+        },
+        migrateIfNeeded() {
+          if (AppState.tasks !== undefined) return;
+
+          const tasks = [];
+          const today = new Date().toISOString().split("T")[0];
+
+          (AppState.inbox || []).forEach(item => {
+            tasks.push({ id: item.id, text: item.text, createdAt: item.createdAt || new Date().toISOString(), done: false });
+          });
+
+          (AppState.triaged || []).forEach(item => {
+            tasks.push({
+              id: item.id, text: item.originalText, createdAt: new Date().toISOString(),
+              type: item.type, category: item.category, score: item.score, quadrant: item.quadrant,
+              projectId: item.projectId || null, subtaskId: item.subtaskId || null, done: item.done || false,
+            });
+          });
+
+          (AppState.execution || []).forEach(entry => {
+            const task = tasks.find(t => t.id === entry.taskId);
+            if (task) {
+              task.execDate = entry.date; task.execDay = entry.day;
+              task.execTime = entry.time; task.execStatus = entry.status;
+              if (entry.status === "Concluído") { task.execCompletedAt = today; task.done = true; }
+            }
+          });
+
+          (AppState.delegated || []).forEach(entry => {
+            const task = tasks.find(t => t.text === entry.title && (t.category === "delegar" || t.quadrant === "q3"));
+            if (task) {
+              task.responsavel = entry.resp || ""; task.delegStatus = entry.status;
+              if (entry.status === "done") { task.delegCompletedAt = today; task.done = true; }
+            } else {
+              tasks.push({
+                id: entry.id, text: entry.title, createdAt: new Date().toISOString(),
+                category: "delegar", quadrant: "q3", responsavel: entry.resp || "",
+                delegStatus: entry.status, done: entry.status === "done",
+                delegCompletedAt: entry.status === "done" ? today : null,
+              });
+            }
+          });
+
+          (AppState.history || []).forEach(h => {
+            if (h.type === "Execução") {
+              const task = tasks.find(t => t.text === h.title && !t.execCompletedAt);
+              if (task) { task.done = true; task.execCompletedAt = today; task.execStatus = "Concluído"; }
+            } else if (h.type === "Delegada") {
+              const task = tasks.find(t => t.text === h.title && !t.delegCompletedAt);
+              if (task) { task.done = true; task.delegCompletedAt = today; task.delegStatus = "done"; }
+            }
+          });
+
+          AppState.tasks = tasks;
+          if (!AppState.projects) AppState.projects = [];
+          delete AppState.inbox; delete AppState.triaged;
+          delete AppState.execution; delete AppState.delegated; delete AppState.history;
+          this.save();
+          console.log("[Migração] Modelo unificado:", tasks.length, "tarefas");
         },
         exportData() {
           const dataStr =
@@ -1278,16 +1327,6 @@
             });
           });
         },
-        addToHistory(title, type) {
-          if (AppState.history.some((h) => h.title === title)) return;
-          AppState.history.unshift({
-            id: this.generateId(),
-            title,
-            type,
-            date: new Date().toLocaleDateString("pt-BR"),
-          });
-          if (AppState.history.length > 100) AppState.history.pop();
-        },
       };
 
       /**
@@ -1305,7 +1344,6 @@
           }
 
           if (type === "projeto") {
-            // Direto para projetos
             AppState.projects.push({
               id: App.generateId(),
               title: text,
@@ -1316,18 +1354,16 @@
             ProjCtrl.render();
             Toast.show("Demanda enviada diretamente para Projetos!", "success");
 
-            // Feedback visual extra: pulsar a aba de projetos no menu lateral
-            const projTab = document.querySelector(
-              '.nav-item[data-target="mod-projects"]',
-            );
+            const projTab = document.querySelector('.nav-item[data-target="mod-projects"]');
             projTab.style.background = "rgba(16, 185, 129, 0.2)";
             projTab.style.transition = "background 0.3s ease";
             setTimeout(() => (projTab.style.background = ""), 800);
           } else {
-            AppState.inbox.push({
+            AppState.tasks.push({
               id: App.generateId(),
               text,
               createdAt: new Date().toISOString(),
+              done: false,
             });
             Toast.show("Adicionado à Caixa de Entrada.", "primary");
           }
@@ -1337,7 +1373,7 @@
           this.render();
         },
         delete(id) {
-          AppState.inbox = AppState.inbox.filter((i) => i.id !== id);
+          AppState.tasks = AppState.tasks.filter(t => t.id !== id);
           App.save();
           this.render();
         },
@@ -1349,12 +1385,13 @@
         },
         render() {
           const container = document.getElementById("inbox-list-container");
+          const inbox = AppState.tasks.filter(t => !t.quadrant);
           container.innerHTML =
-            AppState.inbox.length === 0
+            inbox.length === 0
               ? '<p style="color:var(--text-secondary); font-size:0.875rem;">Caixa de entrada vazia.</p>'
               : "";
 
-          AppState.inbox.forEach((item) => {
+          inbox.forEach(item => {
             const div = document.createElement("div");
             div.className = "inbox-item";
             div.innerHTML = `
@@ -1475,7 +1512,7 @@
           const select = document.getElementById("triage-demand-select");
           select.innerHTML =
             '<option value="">Selecione uma demanda da Caixa de Entrada...</option>';
-          AppState.inbox.forEach((item) => {
+          AppState.tasks.filter(t => !t.quadrant).forEach(item => {
             select.innerHTML += `<option value="${item.id}">${item.text}</option>`;
           });
           this.updateProjectDropdown();
@@ -1489,87 +1526,52 @@
           });
         },
         saveTriage() {
-          const demandId = document.getElementById(
-            "triage-demand-select",
-          ).value;
-          if (!demandId)
-            return Toast.show("Selecione uma demanda na lista!", "warning");
+          const demandId = document.getElementById("triage-demand-select").value;
+          if (!demandId) return Toast.show("Selecione uma demanda na lista!", "warning");
 
-          const selectedRadios = document.querySelectorAll(
-            ".radio-btn.selected",
-          );
+          const selectedRadios = document.querySelectorAll(".radio-btn.selected");
           if (selectedRadios.length < 5)
-            return Toast.show(
-              "Preencha todos os 5 condicionantes para continuar!",
-              "warning",
-            );
+            return Toast.show("Preencha todos os 5 condicionantes para continuar!", "warning");
 
-          const itemIndex = AppState.inbox.findIndex((i) => i.id === demandId);
-          const demand = AppState.inbox[itemIndex];
+          const task = AppState.tasks.find(t => t.id === demandId);
+          if (!task) return;
 
           const evalData = this.evaluateMatrix();
 
-          const triagedItem = {
-            id: App.generateId(),
-            originalText: demand.text,
-            type: document.getElementById("triage-type").value,
-            category: document.getElementById("triage-category").value,
-            score: evalData.score,
-            quadrant: evalData.quad,
-            done: false,
-            projectId: null,
-            subtaskId: null,
-          };
+          task.type = document.getElementById("triage-type").value;
+          task.category = document.getElementById("triage-category").value;
+          task.score = evalData.score;
+          task.quadrant = evalData.quad;
 
-          AppState.triaged.push(triagedItem);
-
-          // Se quadrante 3 e categoria delegar, envia para monitoramento
-          if (evalData.quad === "q3" || triagedItem.category === "delegar") {
-            AppState.delegated.push({
-              id: App.generateId(),
-              title: demand.text,
-              resp: "",
-              status: "plan",
-              date: new Date().toLocaleDateString(),
-            });
-            Toast.show(
-              "Triagem salva! Cópia enviada para Monitoramento (Delegada).",
-              "success",
-            );
+          if (evalData.quad === "q3" || task.category === "delegar") {
+            task.responsavel = "";
+            task.delegStatus = "plan";
+            Toast.show("Triagem salva! Demanda enviada para Monitoramento (Delegada).", "success");
           } else {
-            Toast.show(
-              "Triagem salva! Demanda aguardando no Plano de Execução.",
-              "success",
-            );
+            Toast.show("Triagem salva! Demanda aguardando no Plano de Execução.", "success");
           }
 
-          // Associa ao projeto selecionado (opcional) — guarda o vínculo no item triado
           const linkedProjectId = document.getElementById("triage-project-link").value;
           if (linkedProjectId) {
-            const project = AppState.projects.find((p) => p.id === linkedProjectId);
+            const project = AppState.projects.find(p => p.id === linkedProjectId);
             if (project) {
               if (!project.subtasks) project.subtasks = [];
-              const subtask = { id: App.generateId(), title: demand.text, done: false };
+              const subtask = { id: App.generateId(), title: task.text, done: false };
               project.subtasks.push(subtask);
-              triagedItem.projectId = linkedProjectId;
-              triagedItem.subtaskId = subtask.id;
+              task.projectId = linkedProjectId;
+              task.subtaskId = subtask.id;
               ProjCtrl.render();
             }
           }
-
-          // Remove da inbox
-          AppState.inbox.splice(itemIndex, 1);
 
           App.save();
           InboxCtrl.render();
           MonCtrl.render();
           this.updateDropdown();
 
-          // Reset Form
+          document.getElementById("triage-demand-select").value = "";
           document.getElementById("triage-project-link").value = "";
-          document
-            .querySelectorAll(".radio-btn")
-            .forEach((r) => r.classList.remove("selected"));
+          document.querySelectorAll(".radio-btn").forEach(r => r.classList.remove("selected"));
           this.evaluateMatrix();
         },
       };
@@ -1635,13 +1637,10 @@
           const container = document.getElementById("exec-task-list");
           if (!container) return;
 
-          // IDs já alocados no calendário (qualquer status)
-          const scheduledIds = new Set(AppState.execution.map(e => e.taskId));
-
-          const tasks = AppState.triaged.filter(t =>
+          const tasks = AppState.tasks.filter(t =>
             (t.quadrant === "q1" || t.quadrant === "q2") &&
             !t.done &&
-            !scheduledIds.has(t.id)
+            !t.execDate
           );
 
           if (tasks.length === 0) {
@@ -1657,7 +1656,7 @@
             div.innerHTML = `
               <div class="quad-dot" style="background:${this.quadColor(t.quadrant)};"></div>
               <div>
-                <div class="task-title">${t.originalText}</div>
+                <div class="task-title">${t.text}</div>
                 <div class="task-meta">${t.type} · Score ${t.score}/10</div>
               </div>`;
             container.appendChild(div);
@@ -1689,19 +1688,18 @@
             weekDates.forEach(d => {
               const cellCls = hasSel ? "drop-zone allocatable" : "drop-zone";
               tr += `<td class="${cellCls}" onclick="ExecCtrl.allocateToSlot('${d.iso}','${d.name}','${time}')">`;
-              AppState.execution
-                .filter(e => e.date === d.iso && e.time === time)
+              AppState.tasks
+                .filter(t => t.execDate === d.iso && t.execTime === time)
                 .forEach(t => {
-                  const quad   = AppState.triaged.find(x => x.id === t.taskId);
-                  const dot    = quad ? this.quadColor(quad.quadrant) : "var(--primary-mid)";
-                  const isDone = t.status === "Concluído";
+                  const dot    = this.quadColor(t.quadrant);
+                  const isDone = t.execStatus === "Concluído";
                   tr += `
                     <div class="task-slot${isDone ? " done" : ""}" id="exec-${t.id}" style="border-left-color:${dot}">
-                      <div class="slot-title" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${t.title}">${t.title}</div>
+                      <div class="slot-title" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${t.text}">${t.text}</div>
                       <select class="status-select" onchange="ExecCtrl.changeStatus('${t.id}',this.value)">
-                        <option value="Pendente" ${t.status==="Pendente"?"selected":""}>⏳</option>
-                        <option value="Em Andamento" ${t.status==="Em Andamento"?"selected":""}>🔥</option>
-                        <option value="Concluído" ${t.status==="Concluído"?"selected":""}>✅</option>
+                        <option value="Pendente" ${t.execStatus==="Pendente"?"selected":""}>⏳</option>
+                        <option value="Em Andamento" ${t.execStatus==="Em Andamento"?"selected":""}>🔥</option>
+                        <option value="Concluído" ${t.execStatus==="Concluído"?"selected":""}>✅</option>
                       </select>
                       <span style="cursor:pointer;color:var(--danger);margin-left:4px;" onclick="event.stopPropagation();ExecCtrl.remove('${t.id}')">✕</span>
                     </div>`;
@@ -1714,17 +1712,12 @@
 
         allocateToSlot(dateIso, dayName, time) {
           if (!this.selectedTaskId) return;
-          const task = AppState.triaged.find(t => t.id === this.selectedTaskId);
+          const task = AppState.tasks.find(t => t.id === this.selectedTaskId);
           if (!task) return;
-          AppState.execution.push({
-            id: App.generateId(),
-            taskId: task.id,
-            title: task.originalText,
-            date: dateIso,
-            day: dayName,
-            time,
-            status: "Pendente",
-          });
+          task.execDate = dateIso;
+          task.execDay = dayName;
+          task.execTime = time;
+          task.execStatus = "Pendente";
           App.save();
           this.selectedTaskId = null;
           this.renderTaskList();
@@ -1739,46 +1732,45 @@
         },
 
         changeStatus(id, newStatus) {
-          const entry = AppState.execution.find(e => e.id === id);
-          if (!entry) return;
-          entry.status = newStatus;
+          const task = AppState.tasks.find(t => t.id === id);
+          if (!task) return;
 
-          const triaged = AppState.triaged.find(t => t.id === entry.taskId);
+          if (newStatus !== "Concluído") {
+            task.execStatus = newStatus;
+            App.save();
+            this.renderTaskList();
+            this.renderTable();
+            return;
+          }
 
-          if (newStatus === "Concluído") {
-            App.addToHistory(entry.title, "Execução");
-            if (triaged) {
-              triaged.done = true;
-              // Propaga para a subtarefa do projeto vinculado
-              if (triaged.projectId && triaged.subtaskId) {
-                const proj = AppState.projects.find(p => p.id === triaged.projectId);
-                if (proj && proj.subtasks) {
-                  const sub = proj.subtasks.find(s => s.id === triaged.subtaskId);
-                  if (sub) { sub.done = true; ProjCtrl.render(); }
-                }
-              }
-            }
-          } else if (triaged && triaged.done) {
-            // Reativa tarefa se status voltou de Concluído
-            triaged.done = false;
-            if (triaged.projectId && triaged.subtaskId) {
-              const proj = AppState.projects.find(p => p.id === triaged.projectId);
-              if (proj && proj.subtasks) {
-                const sub = proj.subtasks.find(s => s.id === triaged.subtaskId);
-                if (sub) { sub.done = false; ProjCtrl.render(); }
-              }
+          const today = new Date().toISOString().split("T")[0];
+          task.execStatus = "Concluído";
+          task.execCompletedAt = today;
+          task.done = true;
+
+          if (task.projectId && task.subtaskId) {
+            const proj = AppState.projects.find(p => p.id === task.projectId);
+            if (proj && proj.subtasks) {
+              const sub = proj.subtasks.find(s => s.id === task.subtaskId);
+              if (sub) { sub.done = true; ProjCtrl.render(); }
             }
           }
 
           App.save();
           this.renderTaskList();
           this.renderTable();
+          Toast.show("Tarefa concluída!", "success");
         },
 
         remove(id) {
-          AppState.execution = AppState.execution.filter(e => e.id !== id);
+          const task = AppState.tasks.find(t => t.id === id);
+          if (!task) return;
+          task.execDate = null;
+          task.execDay = null;
+          task.execTime = null;
+          task.execStatus = null;
           App.save();
-          this.renderTaskList(); // tarefa volta para a lista se não estiver concluída
+          this.renderTaskList();
           this.renderTable();
         },
       };
@@ -1804,11 +1796,11 @@
           document.getElementById("proj-desc").value = "";
         },
         updateStatus(id, newStatus) {
-          const p = AppState.projects.find((x) => x.id === id);
+          const p = AppState.projects.find(x => x.id === id);
           if (p) {
             p.status = newStatus;
             if (newStatus === "done") {
-              App.addToHistory(p.title, "Projeto");
+              p.completedAt = new Date().toISOString().split("T")[0];
               Toast.show("Projeto marcado como concluído!", "success");
             }
             App.save();
@@ -1816,23 +1808,25 @@
           }
         },
         toggleSubtask(projectId, subtaskId, done) {
-          const project = AppState.projects.find((p) => p.id === projectId);
+          const project = AppState.projects.find(p => p.id === projectId);
           if (!project || !project.subtasks) return;
-          const subtask = project.subtasks.find((s) => s.id === subtaskId);
+          const subtask = project.subtasks.find(s => s.id === subtaskId);
           if (!subtask) return;
 
           subtask.done = done;
-          if (done) App.addToHistory(subtask.title, "Subtarefa");
 
-          // Propaga para o item triado e para o plano de execução
-          const triaged = AppState.triaged.find(
-            (t) => t.projectId === projectId && t.subtaskId === subtaskId
-          );
-          if (triaged) {
-            triaged.done = done;
-            AppState.execution
-              .filter((e) => e.taskId === triaged.id)
-              .forEach((e) => { e.status = done ? "Concluído" : "Pendente"; });
+          const task = AppState.tasks.find(t => t.projectId === projectId && t.subtaskId === subtaskId);
+          if (task) {
+            if (done) {
+              const today = new Date().toISOString().split("T")[0];
+              task.execStatus = "Concluído";
+              task.execCompletedAt = today;
+              task.done = true;
+            } else {
+              task.execStatus = task.execDate ? "Pendente" : null;
+              task.execCompletedAt = null;
+              task.done = false;
+            }
             ExecCtrl.renderTaskList();
             ExecCtrl.renderTable();
           }
@@ -1893,36 +1887,42 @@
        */
       const MonCtrl = {
         updateStatus(id, newStatus) {
-          const p = AppState.delegated.find((x) => x.id === id);
-          if (p) {
-            p.status = newStatus;
-            if (newStatus === "done") App.addToHistory(p.title, "Delegada");
-            App.save();
-            this.render();
+          const task = AppState.tasks.find(t => t.id === id);
+          if (!task) return;
+          if (newStatus === "done") {
+            task.delegStatus = "done";
+            task.delegCompletedAt = new Date().toISOString().split("T")[0];
+            task.done = true;
+            Toast.show("Demanda delegada concluída!", "success");
+          } else {
+            task.delegStatus = newStatus;
           }
+          App.save();
+          this.render();
         },
         updateResp(id, val) {
-          const p = AppState.delegated.find((x) => x.id === id);
-          if (p) {
-            p.resp = val;
+          const task = AppState.tasks.find(t => t.id === id);
+          if (task) {
+            task.responsavel = val;
             App.save();
           }
         },
         render() {
-          ["plan", "prog", "done"].forEach((status) => {
+          ["plan", "prog", "done"].forEach(status => {
             const col = document.getElementById(`mon-col-${status}`);
             col.innerHTML = "";
-            const items = AppState.delegated.filter((p) => p.status === status);
-            document.getElementById(`mon-count-${status}`).innerText =
-              items.length;
+            const items = AppState.tasks.filter(t =>
+              (t.category === "delegar" || t.quadrant === "q3") && t.delegStatus === status
+            );
+            document.getElementById(`mon-count-${status}`).innerText = items.length;
 
-            items.forEach((p) => {
+            items.forEach(t => {
               col.innerHTML += `
-                        <div class="kanban-card" draggable="true" id="mon-${p.id}" data-type="monitor">
-                            <h4>${p.title}</h4>
-                            <p style="margin-bottom:8px">Data: ${p.date}</p>
-                            <input type="text" placeholder="Responsável..." value="${p.resp}"
-                                onchange="MonCtrl.updateResp('${p.id}', this.value)"
+                        <div class="kanban-card" draggable="true" id="mon-${t.id}" data-type="monitor">
+                            <h4>${t.text}</h4>
+                            <p style="margin-bottom:8px">Score: ${t.score != null ? t.score + "/10" : "—"}</p>
+                            <input type="text" placeholder="Responsável..." value="${t.responsavel || ""}"
+                                onchange="MonCtrl.updateResp('${t.id}', this.value)"
                                 style="padding:5px 9px; font-size:0.77rem; background:var(--bg-base)">
                         </div>`;
             });
@@ -1937,34 +1937,38 @@
         chartPerf: null,
         chartMonth: null,
         execMonth(month) {
-          // Deduplica por taskId — se houver várias entradas para o mesmo item,
-          // mantém a "Concluído" se existir, senão a primeira encontrada.
-          const byTaskId = new Map();
-          AppState.execution.forEach((e) => {
-            const m = e.date ? e.date.substring(0, 7) : (e.month || "");
-            if (m !== month) return;
-            const existing = byTaskId.get(e.taskId);
-            if (!existing || e.status === "Concluído") byTaskId.set(e.taskId, e);
-          });
-          return [...byTaskId.values()];
+          const seen = new Map();
+          // Tarefas do calendário agendadas neste mês
+          AppState.tasks
+            .filter(t => t.execDate && t.execDate.substring(0, 7) === month)
+            .forEach(t => seen.set(t.id, t));
+          // Tarefas delegadas: concluídas neste mês ou ativas e criadas neste mês
+          AppState.tasks
+            .filter(t => t.category === "delegar" || t.quadrant === "q3")
+            .forEach(t => {
+              const doneInMonth = t.delegCompletedAt && t.delegCompletedAt.substring(0, 7) === month;
+              const activeInMonth = t.delegStatus !== "done" && t.createdAt && t.createdAt.substring(0, 7) === month;
+              if (doneInMonth || activeInMonth) seen.set(t.id, t);
+            });
+          return [...seen.values()];
         },
         render() {
           const month = document.getElementById("dash-month-filter").value;
 
           const entries  = this.execMonth(month);
-          const execDone = entries.filter((e) => e.status === "Concluído").length;
+          const execDone = entries.filter(t => t.execStatus === "Concluído" || t.delegStatus === "done").length;
 
-          const projActive = AppState.projects.filter((p) => p.status !== "done").length;
-          const projDone   = AppState.projects.filter((p) => p.status === "done").length;
+          const projActive = AppState.projects.filter(p => p.status !== "done").length;
+          const projDone   = AppState.projects.filter(p => p.status === "done").length;
 
-          document.getElementById("kpi-tasks").innerText =
-            `${execDone} / ${entries.length}`;
-          document.getElementById("kpi-projects").innerText =
-            `${projActive} / ${projDone}`;
+          document.getElementById("kpi-tasks").innerText = `${execDone} / ${entries.length}`;
+          document.getElementById("kpi-projects").innerText = `${projActive} / ${projDone}`;
           document.getElementById("kpi-inbox").innerText =
-            AppState.inbox.length;
+            AppState.tasks.filter(t => !t.quadrant).length;
           document.getElementById("kpi-delegated").innerText =
-            AppState.delegated.filter((d) => d.status !== "done").length;
+            AppState.tasks.filter(t =>
+              (t.category === "delegar" || t.quadrant === "q3") && t.delegStatus !== "done"
+            ).length;
 
           this.renderCharts(execDone, entries.length - execDone, month);
           this.renderHistory();
@@ -2008,11 +2012,10 @@
           const monthNames = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
           const [refYear, refMon] = currentMonth.split("-").map(Number);
           const last3 = [-2, -1, 0].map((offset) => {
-            // Constrói em horário local para evitar bug de timezone UTC
             const d = new Date(refYear, refMon - 1 + offset, 1);
             const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
             const label = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
-            const count = this.execMonth(key).filter((e) => e.status === "Concluído").length;
+            const count = this.execMonth(key).filter(t => t.execStatus === "Concluído" || t.delegStatus === "done").length;
             return { label, count };
           });
 
@@ -2055,15 +2058,31 @@
         },
         renderHistory() {
           const container = document.getElementById("history-container");
-          container.innerHTML =
-            AppState.history.length === 0
-              ? '<p style="color:var(--text-secondary); font-size:0.875rem;">Nenhum histórico registrado.</p>'
-              : "";
-          AppState.history.forEach((h) => {
+          const items = [];
+
+          AppState.tasks.filter(t => t.execStatus === "Concluído").forEach(t => {
+            items.push({ title: t.text, type: "Execução", date: t.execCompletedAt || "" });
+          });
+          AppState.tasks.filter(t => t.delegStatus === "done").forEach(t => {
+            items.push({ title: t.text, type: "Delegada", date: t.delegCompletedAt || "" });
+          });
+          AppState.projects.filter(p => p.status === "done").forEach(p => {
+            items.push({ title: p.title, type: "Projeto", date: p.completedAt || "" });
+          });
+
+          items.sort((a, b) => (b.date > a.date ? 1 : -1));
+
+          container.innerHTML = items.length === 0
+            ? '<p style="color:var(--text-secondary); font-size:0.875rem;">Nenhum histórico registrado.</p>'
+            : "";
+          items.forEach(h => {
+            const dateStr = h.date
+              ? new Date(h.date + "T00:00:00").toLocaleDateString("pt-BR")
+              : "—";
             container.innerHTML += `
                         <div class="history-item">
                             <span><strong style="color:var(--primary-light)">[${h.type}]</strong> <span style="margin-left:6px;">${h.title}</span></span>
-                            <span style="color:var(--text-secondary); font-size:0.77rem; flex-shrink:0; margin-left:16px;">${h.date}</span>
+                            <span style="color:var(--text-secondary); font-size:0.77rem; flex-shrink:0; margin-left:16px;">${dateStr}</span>
                         </div>
                     `;
           });
@@ -2072,32 +2091,20 @@
           const statusLabel = { plan: "Planejamento", prog: "Em Andamento", done: "Concluído" };
           let data = [["Origem", "Título", "Data", "Status"]];
 
-          // Execução — deduplica por taskId
-          const seenExec = new Set();
-          AppState.execution.forEach((e) => {
-            if (seenExec.has(e.taskId)) return;
-            seenExec.add(e.taskId);
-            const triaged = AppState.triaged.find((t) => t.id === e.taskId);
-            data.push([
-              triaged ? triaged.type : "Execução",
-              e.title,
-              e.date || e.month || "—",
-              e.status,
-            ]);
+          AppState.tasks.forEach(t => {
+            if (t.execDate) {
+              data.push([t.type || "Execução", t.text, t.execDate, t.execStatus || "Pendente"]);
+            } else if (t.delegStatus) {
+              data.push(["Delegada", t.text, "—", statusLabel[t.delegStatus] || t.delegStatus]);
+            }
           });
 
-          // Projetos e subtarefas
-          AppState.projects.forEach((p) => {
+          AppState.projects.forEach(p => {
             data.push(["Projeto", p.title, "—", statusLabel[p.status] || p.status]);
-            (p.subtasks || []).forEach((st) =>
+            (p.subtasks || []).forEach(st =>
               data.push(["Subtarefa", st.title, "—", st.done ? "Concluído" : "Pendente"])
             );
           });
-
-          // Delegadas
-          AppState.delegated.forEach((d) =>
-            data.push(["Delegada", d.title, d.date || "—", statusLabel[d.status] || d.status])
-          );
 
           const ws = XLSX.utils.aoa_to_sheet(data);
           const wb = XLSX.utils.book_new();
