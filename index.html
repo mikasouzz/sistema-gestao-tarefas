@@ -3,8 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LeadManager | Gestão de Tarefas</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <title>Gestão de Tarefas</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <style>
@@ -46,7 +49,12 @@
         --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
-      * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Inter", sans-serif; }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Inter", sans-serif;
+      }
 
       body {
         background: var(--bg-base);
@@ -56,12 +64,27 @@
         overflow: hidden;
       }
 
-      h1, h2, h3 { color: var(--text-primary); font-weight: 600; }
+      h1,
+      h2,
+      h3 {
+        color: var(--text-primary);
+        font-weight: 600;
+      }
 
-      ::-webkit-scrollbar { width: 4px; height: 4px; }
-      ::-webkit-scrollbar-track { background: transparent; }
-      ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 10px; }
-      ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.16); }
+      ::-webkit-scrollbar {
+        width: 4px;
+        height: 4px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.16);
+      }
 
       /* ─── SIDEBAR ─────────────────────────────────────── */
       .sidebar {
@@ -85,7 +108,11 @@
       .logo-icon {
         width: 34px;
         height: 34px;
-        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        background: linear-gradient(
+          135deg,
+          var(--primary),
+          var(--primary-light)
+        );
         border-radius: 9px;
         display: flex;
         align-items: center;
@@ -94,11 +121,17 @@
         box-shadow: 0 0 18px var(--primary-glow);
       }
 
-      .logo-text-wrap { line-height: 1; }
+      .logo-text-wrap {
+        line-height: 1;
+      }
       .logo-name {
         font-size: 0.95rem;
         font-weight: 700;
-        background: linear-gradient(to right, var(--text-primary) 40%, var(--primary-light));
+        background: linear-gradient(
+          to right,
+          var(--text-primary) 40%,
+          var(--primary-light)
+        );
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -135,20 +168,29 @@
         border: 1px solid transparent;
       }
 
-      .nav-item .nav-icon { flex-shrink: 0; opacity: 0.55; transition: var(--transition); }
+      .nav-item .nav-icon {
+        flex-shrink: 0;
+        opacity: 0.55;
+        transition: var(--transition);
+      }
 
       .nav-item:hover {
         background: var(--bg-hover);
         color: var(--text-primary);
       }
-      .nav-item:hover .nav-icon { opacity: 0.85; }
+      .nav-item:hover .nav-icon {
+        opacity: 0.85;
+      }
 
       .nav-item.active {
         background: var(--primary-glow);
         color: var(--primary-light);
         border-color: var(--primary-border);
       }
-      .nav-item.active .nav-icon { opacity: 1; color: var(--primary-light); }
+      .nav-item.active .nav-icon {
+        opacity: 1;
+        color: var(--primary-light);
+      }
 
       .sidebar-footer {
         padding: 14px 18px;
@@ -159,7 +201,12 @@
       }
 
       /* ─── TOPBAR ──────────────────────────────────────── */
-      .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+      .main-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
 
       .topbar {
         background: var(--bg-elevated);
@@ -173,9 +220,15 @@
         flex-shrink: 0;
       }
 
-      .topbar h2 { font-size: 1rem; font-weight: 600; }
+      .topbar h2 {
+        font-size: 1rem;
+        font-weight: 600;
+      }
 
-      .data-tools { display: flex; gap: 7px; }
+      .data-tools {
+        display: flex;
+        gap: 7px;
+      }
 
       /* ─── MODULE CONTAINERS ────────────────────────────── */
       .module-container {
@@ -190,12 +243,20 @@
       }
 
       @keyframes fadeUp {
-        from { opacity: 0; transform: translateY(7px); }
-        to   { opacity: 1; transform: translateY(0); }
+        from {
+          opacity: 0;
+          transform: translateY(7px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
       /* ─── FORMS ───────────────────────────────────────── */
-      input, select, textarea {
+      input,
+      select,
+      textarea {
         background: var(--bg-surface);
         border: 1px solid var(--border);
         color: var(--text-primary);
@@ -206,13 +267,20 @@
         width: 100%;
         font-size: 0.865rem;
       }
-      input::placeholder, textarea::placeholder { color: var(--text-secondary); }
-      input:focus, select:focus, textarea:focus {
+      input::placeholder,
+      textarea::placeholder {
+        color: var(--text-secondary);
+      }
+      input:focus,
+      select:focus,
+      textarea:focus {
         border-color: var(--primary-border);
         background: var(--bg-surface-2);
         box-shadow: 0 0 0 3px var(--primary-glow);
       }
-      select option { background: var(--bg-surface-2); }
+      select option {
+        background: var(--bg-surface-2);
+      }
 
       /* ─── BUTTONS ─────────────────────────────────────── */
       .btn {
@@ -231,7 +299,7 @@
         white-space: nowrap;
       }
       .btn:hover {
-        background: rgba(255,255,255,0.06);
+        background: rgba(255, 255, 255, 0.06);
         color: var(--text-primary);
         border-color: var(--border-strong);
       }
@@ -242,12 +310,18 @@
         box-shadow: 0 4px 14px rgba(109, 40, 217, 0.35);
       }
       .btn-primary:hover {
-        background: linear-gradient(135deg, var(--primary-mid), var(--primary-light));
+        background: linear-gradient(
+          135deg,
+          var(--primary-mid),
+          var(--primary-light)
+        );
         box-shadow: 0 4px 20px rgba(139, 92, 246, 0.45);
         transform: translateY(-1px);
         color: #fff;
       }
-      .btn-primary:active { transform: translateY(0); }
+      .btn-primary:active {
+        transform: translateY(0);
+      }
       .btn-danger {
         background: transparent;
         color: var(--danger);
@@ -270,7 +344,9 @@
         transform: translateY(-1px);
         color: #fff;
       }
-      .btn-accent:active { transform: translateY(0); }
+      .btn-accent:active {
+        transform: translateY(0);
+      }
 
       /* ─── BADGES ──────────────────────────────────────── */
       .badge {
@@ -293,10 +369,20 @@
       }
 
       /* ─── MODULE 1: INBOX ─────────────────────────────── */
-      .input-group { display: flex; gap: 10px; margin-bottom: 22px; }
-      .input-group input { flex: 1; }
+      .input-group {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 22px;
+      }
+      .input-group input {
+        flex: 1;
+      }
 
-      .inbox-list { display: flex; flex-direction: column; gap: 9px; }
+      .inbox-list {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+      }
 
       .inbox-item {
         background: var(--bg-elevated);
@@ -314,7 +400,11 @@
       }
 
       /* ─── MODULE 2: TRIAGE ────────────────────────────── */
-      .triage-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+      .triage-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
 
       .triage-panel {
         background: var(--bg-elevated);
@@ -344,13 +434,33 @@
         transition: var(--transition);
         opacity: 0.35;
       }
-      .quadrant strong { font-size: 0.78rem; display: block; }
-      .quadrant small { font-size: 0.68rem; color: var(--text-secondary); }
-      .quadrant.active { opacity: 1; }
-      .q1.active { border-color: var(--danger);  background: var(--danger-glow); }
-      .q2.active { border-color: var(--primary-mid); background: var(--primary-glow); }
-      .q3.active { border-color: var(--warning); background: rgba(245, 158, 11, 0.1); }
-      .q4.active { border-color: var(--text-secondary); background: rgba(120, 120, 160, 0.07); }
+      .quadrant strong {
+        font-size: 0.78rem;
+        display: block;
+      }
+      .quadrant small {
+        font-size: 0.68rem;
+        color: var(--text-secondary);
+      }
+      .quadrant.active {
+        opacity: 1;
+      }
+      .q1.active {
+        border-color: var(--danger);
+        background: var(--danger-glow);
+      }
+      .q2.active {
+        border-color: var(--primary-mid);
+        background: var(--primary-glow);
+      }
+      .q3.active {
+        border-color: var(--warning);
+        background: rgba(245, 158, 11, 0.1);
+      }
+      .q4.active {
+        border-color: var(--text-secondary);
+        background: rgba(120, 120, 160, 0.07);
+      }
 
       .score-bar {
         height: 5px;
@@ -361,13 +471,22 @@
       }
       .score-fill {
         height: 100%;
-        background: linear-gradient(to right, var(--primary), var(--primary-light));
+        background: linear-gradient(
+          to right,
+          var(--primary),
+          var(--primary-light)
+        );
         width: 0%;
         transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         border-radius: 10px;
       }
 
-      .radio-group { display: flex; gap: 6px; margin-top: 7px; flex-wrap: wrap; }
+      .radio-group {
+        display: flex;
+        gap: 6px;
+        margin-top: 7px;
+        flex-wrap: wrap;
+      }
       .radio-btn {
         background: var(--bg-surface);
         border: 1px solid var(--border);
@@ -379,7 +498,10 @@
         transition: var(--transition);
         color: var(--text-secondary);
       }
-      .radio-btn:hover { border-color: var(--primary-border); color: var(--text-primary); }
+      .radio-btn:hover {
+        border-color: var(--primary-border);
+        color: var(--text-primary);
+      }
       .radio-btn.selected {
         background: var(--primary-glow);
         color: var(--primary-light);
@@ -406,8 +528,15 @@
         border-bottom: 1px solid var(--border);
         flex-shrink: 0;
       }
-      .exec-panel-header h3 { font-size: 0.875rem; margin-bottom: 3px; }
-      .exec-panel-header p { font-size: 0.71rem; color: var(--text-secondary); line-height: 1.4; }
+      .exec-panel-header h3 {
+        font-size: 0.875rem;
+        margin-bottom: 3px;
+      }
+      .exec-panel-header p {
+        font-size: 0.71rem;
+        color: var(--text-secondary);
+        line-height: 1.4;
+      }
       .exec-task-list {
         flex: 1;
         overflow-y: auto;
@@ -427,11 +556,32 @@
         align-items: flex-start;
         gap: 8px;
       }
-      .exec-task-item:hover { border-color: var(--border-strong); background: var(--bg-surface-2); }
-      .exec-task-item.selected { border-color: var(--primary-border); background: var(--primary-glow); }
-      .quad-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
-      .exec-task-item .task-title { font-size: 0.79rem; font-weight: 500; color: var(--text-primary); line-height: 1.35; margin-bottom: 2px; }
-      .exec-task-item .task-meta { font-size: 0.66rem; color: var(--text-secondary); }
+      .exec-task-item:hover {
+        border-color: var(--border-strong);
+        background: var(--bg-surface-2);
+      }
+      .exec-task-item.selected {
+        border-color: var(--primary-border);
+        background: var(--primary-glow);
+      }
+      .quad-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        margin-top: 4px;
+      }
+      .exec-task-item .task-title {
+        font-size: 0.79rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        line-height: 1.35;
+        margin-bottom: 2px;
+      }
+      .exec-task-item .task-meta {
+        font-size: 0.66rem;
+        color: var(--text-secondary);
+      }
       .exec-calendar-panel {
         display: flex;
         flex-direction: column;
@@ -455,7 +605,11 @@
         font-weight: 600;
         font-size: 0.85rem;
       }
-      .schedule-table-wrap { flex: 1; overflow: auto; border-radius: var(--radius); }
+      .schedule-table-wrap {
+        flex: 1;
+        overflow: auto;
+        border-radius: var(--radius);
+      }
       .schedule-table {
         width: 100%;
         border-collapse: collapse;
@@ -463,7 +617,8 @@
         border-radius: var(--radius);
         overflow: hidden;
       }
-      .schedule-table th, .schedule-table td {
+      .schedule-table th,
+      .schedule-table td {
         border: 1px solid var(--border);
         padding: 7px 10px;
         text-align: left;
@@ -485,10 +640,23 @@
         color: var(--text-secondary);
         background: var(--bg-surface) !important;
       }
-      .drop-zone { min-height: 50px; background: transparent; border-radius: 6px; padding: 3px; transition: background 0.15s; }
-      .drop-zone.allocatable { cursor: cell; }
-      .drop-zone.allocatable:hover { background: var(--primary-glow); }
-      .drop-zone.drag-over { background: var(--primary-glow); border: 1px dashed var(--primary-border); }
+      .drop-zone {
+        min-height: 50px;
+        background: transparent;
+        border-radius: 6px;
+        padding: 3px;
+        transition: background 0.15s;
+      }
+      .drop-zone.allocatable {
+        cursor: cell;
+      }
+      .drop-zone.allocatable:hover {
+        background: var(--primary-glow);
+      }
+      .drop-zone.drag-over {
+        background: var(--primary-glow);
+        border: 1px dashed var(--primary-border);
+      }
       .task-slot {
         background: var(--bg-surface-2);
         border: 1px solid var(--border);
@@ -580,13 +748,28 @@
         border-left-color: var(--primary-light);
         background: var(--bg-surface-2);
         transform: translateY(-1px);
-        box-shadow: 0 8px 28px rgba(0,0,0,0.5);
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
       }
-      .kanban-card:active { cursor: grabbing; transform: none; }
-      .kanban-card h4 { margin-bottom: 5px; font-size: 0.865rem; }
-      .kanban-card p { font-size: 0.77rem; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.5; }
-      .project-card { border-left-color: var(--accent); }
-      .project-card:hover { border-left-color: var(--accent-light); }
+      .kanban-card:active {
+        cursor: grabbing;
+        transform: none;
+      }
+      .kanban-card h4 {
+        margin-bottom: 5px;
+        font-size: 0.865rem;
+      }
+      .kanban-card p {
+        font-size: 0.77rem;
+        color: var(--text-secondary);
+        margin-bottom: 10px;
+        line-height: 1.5;
+      }
+      .project-card {
+        border-left-color: var(--accent);
+      }
+      .project-card:hover {
+        border-left-color: var(--accent-light);
+      }
 
       /* ─── DASHBOARD ───────────────────────────────────── */
       .kpi-grid {
@@ -605,25 +788,41 @@
         transition: var(--transition);
       }
       .kpi-card::before {
-        content: '';
+        content: "";
         position: absolute;
-        top: 0; left: 0; right: 0;
+        top: 0;
+        left: 0;
+        right: 0;
         height: 2px;
-        background: linear-gradient(to right, var(--primary), var(--primary-light));
+        background: linear-gradient(
+          to right,
+          var(--primary),
+          var(--primary-light)
+        );
       }
-      .kpi-card:hover { border-color: var(--border-strong); }
+      .kpi-card:hover {
+        border-color: var(--border-strong);
+      }
 
       .kpi-value {
         font-size: 2.1rem;
         font-weight: 800;
-        background: linear-gradient(135deg, var(--text-primary) 30%, var(--primary-light));
+        background: linear-gradient(
+          135deg,
+          var(--text-primary) 30%,
+          var(--primary-light)
+        );
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
         margin: 9px 0 3px;
         line-height: 1.1;
       }
-      .kpi-label { color: var(--text-secondary); font-size: 0.78rem; line-height: 1.4; }
+      .kpi-label {
+        color: var(--text-secondary);
+        font-size: 0.78rem;
+        line-height: 1.4;
+      }
 
       .charts-grid {
         display: grid;
@@ -655,7 +854,9 @@
         align-items: center;
         font-size: 0.865rem;
       }
-      .history-item:last-child { border-bottom: none; }
+      .history-item:last-child {
+        border-bottom: none;
+      }
 
       /* ─── MODAL ───────────────────────────────────────── */
       .modal-overlay {
@@ -668,7 +869,10 @@
         z-index: 100;
         backdrop-filter: blur(10px);
       }
-      .modal-overlay.active { display: flex; animation: fadeUp 0.22s ease; }
+      .modal-overlay.active {
+        display: flex;
+        animation: fadeUp 0.22s ease;
+      }
       .modal {
         background: var(--bg-elevated);
         width: 100%;
@@ -678,7 +882,9 @@
         padding: 28px;
         box-shadow: var(--shadow-lg);
       }
-      .modal h3 { font-size: 1.05rem; }
+      .modal h3 {
+        font-size: 1.05rem;
+      }
 
       /* ─── TOASTS ──────────────────────────────────────── */
       .toast-container {
@@ -709,30 +915,78 @@
         max-width: 310px;
         border-left: 3px solid var(--primary-mid);
       }
-      .toast.success { border-left-color: var(--accent); }
-      .toast.error   { border-left-color: var(--danger); }
-      .toast.warning { border-left-color: var(--warning); }
-      .toast.fade-out { animation: fadeOutToast 0.28s ease forwards; }
+      .toast.success {
+        border-left-color: var(--accent);
+      }
+      .toast.error {
+        border-left-color: var(--danger);
+      }
+      .toast.warning {
+        border-left-color: var(--warning);
+      }
+      .toast.fade-out {
+        animation: fadeOutToast 0.28s ease forwards;
+      }
 
-      @keyframes slideInToast { to { transform: translateX(0); } }
-      @keyframes fadeOutToast  { to { transform: translateX(120%); opacity: 0; } }
+      @keyframes slideInToast {
+        to {
+          transform: translateX(0);
+        }
+      }
+      @keyframes fadeOutToast {
+        to {
+          transform: translateX(120%);
+          opacity: 0;
+        }
+      }
 
       /* ─── UTILITIES ───────────────────────────────────── */
-      .hidden { display: none !important; }
-      .flex { display: flex; }
-      .flex-col { flex-direction: column; }
-      .flex-1 { flex: 1; }
-      .gap-2 { gap: 8px; }
-      .gap-3 { gap: 12px; }
-      .gap-4 { gap: 16px; }
-      .mt-4 { margin-top: 16px; }
-      .mb-4 { margin-bottom: 16px; }
-      .align-center { align-items: center; }
-      .justify-between { justify-content: space-between; }
-      .text-muted { color: var(--text-secondary); }
-      .w-full { width: 100%; }
+      .hidden {
+        display: none !important;
+      }
+      .flex {
+        display: flex;
+      }
+      .flex-col {
+        flex-direction: column;
+      }
+      .flex-1 {
+        flex: 1;
+      }
+      .gap-2 {
+        gap: 8px;
+      }
+      .gap-3 {
+        gap: 12px;
+      }
+      .gap-4 {
+        gap: 16px;
+      }
+      .mt-4 {
+        margin-top: 16px;
+      }
+      .mb-4 {
+        margin-bottom: 16px;
+      }
+      .align-center {
+        align-items: center;
+      }
+      .justify-between {
+        justify-content: space-between;
+      }
+      .text-muted {
+        color: var(--text-secondary);
+      }
+      .w-full {
+        width: 100%;
+      }
 
-      label { font-size: 0.78rem; color: var(--text-secondary); display: block; margin-bottom: 5px; }
+      label {
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+        display: block;
+        margin-bottom: 5px;
+      }
     </style>
   </head>
   <body>
@@ -740,41 +994,134 @@
     <aside class="sidebar">
       <div class="sidebar-logo">
         <div class="logo-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="white"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
             <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
             <polyline points="2 17 12 22 22 17"></polyline>
             <polyline points="2 12 12 17 22 12"></polyline>
           </svg>
         </div>
         <div class="logo-text-wrap">
-          <div class="logo-name">LeadManager</div>
-          <span class="logo-tag">Gestão de Liderança</span>
+          <div class="logo-name">Gestão de Tarefas</div>
+          <span class="logo-tag">Mikaella Souza</span>
         </div>
       </div>
 
       <nav class="sidebar-nav">
         <div class="nav-item active" data-target="mod-inbox">
-          <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
+          <svg
+            class="nav-icon"
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline>
+            <path
+              d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"
+            ></path>
+          </svg>
           Caixa de Entrada
         </div>
         <div class="nav-item" data-target="mod-triage">
-          <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+          <svg
+            class="nav-icon"
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polygon
+              points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"
+            ></polygon>
+          </svg>
           Triagem
         </div>
         <div class="nav-item" data-target="mod-execution">
-          <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          <svg
+            class="nav-icon"
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
           Plano de Execução
         </div>
         <div class="nav-item" data-target="mod-projects">
-          <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+          <svg
+            class="nav-icon"
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"
+            ></path>
+          </svg>
           Projetos
         </div>
         <div class="nav-item" data-target="mod-monitor">
-          <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+          <svg
+            class="nav-icon"
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
           Monitoramento
         </div>
         <div class="nav-item" data-target="mod-dashboard">
-          <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          <svg
+            class="nav-icon"
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+          </svg>
           Dashboard Analítico
         </div>
       </nav>
@@ -787,17 +1134,65 @@
       <header class="topbar">
         <h2 id="current-module-title">Caixa de Entrada</h2>
         <div class="data-tools">
-          <input type="file" id="import-file" accept=".json" style="display: none" />
-          <button class="btn" onclick="document.getElementById('import-file').click()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          <input
+            type="file"
+            id="import-file"
+            accept=".json"
+            style="display: none"
+          />
+          <button
+            class="btn"
+            onclick="document.getElementById('import-file').click()"
+          >
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
             Importar
           </button>
           <button class="btn" onclick="App.exportData()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
             Exportar
           </button>
           <button class="btn btn-danger" onclick="App.clearData()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path
+                d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
+              ></path>
+            </svg>
             Limpar
           </button>
         </div>
@@ -806,13 +1201,33 @@
       <!-- Módulo 1: Caixa de Entrada -->
       <section id="mod-inbox" class="module-container active">
         <div class="input-group">
-          <input type="text" id="new-demand-input" placeholder="Nova demanda — ex: Revisar relatório financeiro Q3" />
-          <select id="new-demand-type" style="width: 158px; flex-shrink: 0;">
+          <input
+            type="text"
+            id="new-demand-input"
+            placeholder="Nova demanda — ex: Revisar relatório financeiro Q3"
+          />
+          <select id="new-demand-type" style="width: 158px; flex-shrink: 0">
             <option value="triagem">P/ Triagem</option>
             <option value="projeto">P/ Projetos</option>
           </select>
-          <button class="btn btn-primary" onclick="InboxCtrl.addDemand()" style="flex-shrink: 0;">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <button
+            class="btn btn-primary"
+            onclick="InboxCtrl.addDemand()"
+            style="flex-shrink: 0"
+          >
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
             Adicionar
           </button>
         </div>
@@ -823,9 +1238,11 @@
       <section id="mod-triage" class="module-container">
         <div class="triage-grid">
           <div class="triage-panel">
-            <h3 style="margin-bottom: 16px;">Selecionar Demanda</h3>
+            <h3 style="margin-bottom: 16px">Selecionar Demanda</h3>
             <select id="triage-demand-select" class="mb-4">
-              <option value="">Selecione uma demanda da Caixa de Entrada...</option>
+              <option value="">
+                Selecione uma demanda da Caixa de Entrada...
+              </option>
             </select>
 
             <div class="flex gap-4 mb-4">
@@ -843,7 +1260,10 @@
               </div>
               <div class="flex-1">
                 <label>Categoria</label>
-                <select id="triage-category" onchange="TriageCtrl.evaluateMatrix()">
+                <select
+                  id="triage-category"
+                  onchange="TriageCtrl.evaluateMatrix()"
+                >
                   <option value="realizar">Realizar</option>
                   <option value="delegar">Delegar</option>
                 </select>
@@ -857,29 +1277,82 @@
               </select>
             </div>
 
-            <h3 style="font-size: 0.9rem; margin-bottom: 2px;">Condicionantes</h3>
-            <p style="font-size: 0.77rem; color: var(--text-secondary); margin-bottom: 10px;">Matriz de Prioridade</p>
+            <h3 style="font-size: 0.9rem; margin-bottom: 2px">
+              Condicionantes
+            </h3>
+            <p
+              style="
+                font-size: 0.77rem;
+                color: var(--text-secondary);
+                margin-bottom: 10px;
+              "
+            >
+              Matriz de Prioridade
+            </p>
             <div id="triage-criteria"></div>
 
             <div class="mt-4">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px;">
-                <span style="font-size: 0.78rem; color: var(--text-secondary);">Score de Prioridade</span>
-                <span style="font-size: 0.9rem; font-weight: 700; color: var(--primary-light);"><strong id="triage-score-val">0</strong> / 10</span>
+              <div
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  margin-bottom: 7px;
+                "
+              >
+                <span style="font-size: 0.78rem; color: var(--text-secondary)"
+                  >Score de Prioridade</span
+                >
+                <span
+                  style="
+                    font-size: 0.9rem;
+                    font-weight: 700;
+                    color: var(--primary-light);
+                  "
+                  ><strong id="triage-score-val">0</strong> / 10</span
+                >
               </div>
               <div class="score-bar">
                 <div class="score-fill" id="triage-score-fill"></div>
               </div>
             </div>
 
-            <button class="btn btn-primary mt-4" style="width: 100%; justify-content: center;" onclick="TriageCtrl.saveTriage()">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+            <button
+              class="btn btn-primary mt-4"
+              style="width: 100%; justify-content: center"
+              onclick="TriageCtrl.saveTriage()"
+            >
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
+                ></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
               Salvar Triagem e Enviar para Execução
             </button>
           </div>
 
           <div class="triage-panel">
-            <h3 style="margin-bottom: 5px;">Matriz de Eisenhower</h3>
-            <p style="font-size: 0.79rem; color: var(--text-secondary); margin-bottom: 0;">Posicionamento automático por score e categoria.</p>
+            <h3 style="margin-bottom: 5px">Matriz de Eisenhower</h3>
+            <p
+              style="
+                font-size: 0.79rem;
+                color: var(--text-secondary);
+                margin-bottom: 0;
+              "
+            >
+              Posicionamento automático por score e categoria.
+            </p>
             <div class="triage-matrix">
               <div class="quadrant q1" id="quad-q1">
                 <strong>Fazer Agora (Q1)</strong>
@@ -918,13 +1391,35 @@
           <div class="exec-calendar-panel">
             <div class="week-nav">
               <button class="btn" onclick="ExecCtrl.prevWeek()">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
                 Anterior
               </button>
               <span class="week-nav-label" id="exec-week-label">—</span>
               <button class="btn" onclick="ExecCtrl.nextWeek()">
                 Próxima
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
               </button>
             </div>
             <div class="schedule-table-wrap">
@@ -940,55 +1435,124 @@
       <!-- Módulo 4: Projetos -->
       <section id="mod-projects" class="module-container">
         <div class="mb-4 flex justify-between align-center">
-          <p style="color: var(--text-secondary); font-size: 0.865rem;">Gerenciamento de grandes iniciativas da supervisão.</p>
-          <button class="btn btn-primary" onclick="document.getElementById('modal-project').classList.add('active')">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <p style="color: var(--text-secondary); font-size: 0.865rem">
+            Gerenciamento de grandes iniciativas da supervisão.
+          </p>
+          <button
+            class="btn btn-primary"
+            onclick="
+              document.getElementById('modal-project').classList.add('active')
+            "
+          >
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
             Novo Projeto
           </button>
         </div>
         <div class="kanban-board">
           <div class="kanban-col">
-            <div class="kanban-header" style="border-top: 3px solid var(--info);">
+            <div
+              class="kanban-header"
+              style="border-top: 3px solid var(--info)"
+            >
               Em Planejamento <span class="badge" id="proj-count-plan">0</span>
             </div>
-            <div class="kanban-body drop-zone-kanban" data-status="plan" id="proj-col-plan"></div>
+            <div
+              class="kanban-body drop-zone-kanban"
+              data-status="plan"
+              id="proj-col-plan"
+            ></div>
           </div>
           <div class="kanban-col">
-            <div class="kanban-header" style="border-top: 3px solid var(--warning);">
+            <div
+              class="kanban-header"
+              style="border-top: 3px solid var(--warning)"
+            >
               Em Andamento <span class="badge" id="proj-count-prog">0</span>
             </div>
-            <div class="kanban-body drop-zone-kanban" data-status="prog" id="proj-col-prog"></div>
+            <div
+              class="kanban-body drop-zone-kanban"
+              data-status="prog"
+              id="proj-col-prog"
+            ></div>
           </div>
           <div class="kanban-col">
-            <div class="kanban-header" style="border-top: 3px solid var(--accent);">
+            <div
+              class="kanban-header"
+              style="border-top: 3px solid var(--accent)"
+            >
               Concluído <span class="badge" id="proj-count-done">0</span>
             </div>
-            <div class="kanban-body drop-zone-kanban" data-status="done" id="proj-col-done"></div>
+            <div
+              class="kanban-body drop-zone-kanban"
+              data-status="done"
+              id="proj-col-done"
+            ></div>
           </div>
         </div>
       </section>
 
       <!-- Módulo 5: Monitoramento -->
       <section id="mod-monitor" class="module-container">
-        <p style="color: var(--text-secondary); font-size: 0.865rem; margin-bottom: 22px;">Acompanhamento de demandas delegadas pela triagem (Q3).</p>
+        <p
+          style="
+            color: var(--text-secondary);
+            font-size: 0.865rem;
+            margin-bottom: 22px;
+          "
+        >
+          Acompanhamento de demandas delegadas pela triagem (Q3).
+        </p>
         <div class="kanban-board">
           <div class="kanban-col">
-            <div class="kanban-header" style="border-top: 3px solid var(--info);">
+            <div
+              class="kanban-header"
+              style="border-top: 3px solid var(--info)"
+            >
               Em Planejamento <span class="badge" id="mon-count-plan">0</span>
             </div>
-            <div class="kanban-body drop-zone-kanban" data-status="plan" id="mon-col-plan"></div>
+            <div
+              class="kanban-body drop-zone-kanban"
+              data-status="plan"
+              id="mon-col-plan"
+            ></div>
           </div>
           <div class="kanban-col">
-            <div class="kanban-header" style="border-top: 3px solid var(--warning);">
+            <div
+              class="kanban-header"
+              style="border-top: 3px solid var(--warning)"
+            >
               Em Andamento <span class="badge" id="mon-count-prog">0</span>
             </div>
-            <div class="kanban-body drop-zone-kanban" data-status="prog" id="mon-col-prog"></div>
+            <div
+              class="kanban-body drop-zone-kanban"
+              data-status="prog"
+              id="mon-col-prog"
+            ></div>
           </div>
           <div class="kanban-col">
-            <div class="kanban-header" style="border-top: 3px solid var(--accent);">
+            <div
+              class="kanban-header"
+              style="border-top: 3px solid var(--accent)"
+            >
               Concluído <span class="badge" id="mon-count-done">0</span>
             </div>
-            <div class="kanban-body drop-zone-kanban" data-status="done" id="mon-col-done"></div>
+            <div
+              class="kanban-body drop-zone-kanban"
+              data-status="done"
+              id="mon-col-done"
+            ></div>
           </div>
         </div>
       </section>
@@ -996,9 +1560,30 @@
       <!-- Módulo 6: Dashboard Analítico -->
       <section id="mod-dashboard" class="module-container">
         <div class="flex justify-between mb-4 align-center">
-          <input type="month" id="dash-month-filter" onchange="DashCtrl.render()" style="max-width: 175px;" />
+          <input
+            type="month"
+            id="dash-month-filter"
+            onchange="DashCtrl.render()"
+            style="max-width: 175px"
+          />
           <button class="btn btn-primary" onclick="DashCtrl.exportExcel()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+              ></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+            </svg>
             Gerar Relatório Excel
           </button>
         </div>
@@ -1021,8 +1606,12 @@
           </div>
         </div>
         <div class="charts-grid">
-          <div class="chart-container"><canvas id="chart-performance"></canvas></div>
-          <div class="chart-container"><canvas id="chart-monthly"></canvas></div>
+          <div class="chart-container">
+            <canvas id="chart-performance"></canvas>
+          </div>
+          <div class="chart-container">
+            <canvas id="chart-monthly"></canvas>
+          </div>
         </div>
         <div class="history-list">
           <h3 class="mb-4">Histórico de Conclusões</h3>
@@ -1037,14 +1626,34 @@
         <h3 class="mb-4">Criar Projeto de Supervisão</h3>
         <div class="flex-col gap-3">
           <input type="text" id="proj-title" placeholder="Título do Projeto" />
-          <textarea id="proj-desc" rows="3" placeholder="Descrição e Objetivos"></textarea>
+          <textarea
+            id="proj-desc"
+            rows="3"
+            placeholder="Descrição e Objetivos"
+          ></textarea>
           <select id="proj-term">
             <option value="Curto Prazo">Curto Prazo</option>
             <option value="Longo Prazo">Longo Prazo</option>
           </select>
           <div class="flex gap-2 mt-4">
-            <button class="btn btn-primary flex-1" style="justify-content: center;" onclick="ProjCtrl.addProject()">Salvar Projeto</button>
-            <button class="btn flex-1" style="justify-content: center;" onclick="document.getElementById('modal-project').classList.remove('active')">Cancelar</button>
+            <button
+              class="btn btn-primary flex-1"
+              style="justify-content: center"
+              onclick="ProjCtrl.addProject()"
+            >
+              Salvar Projeto
+            </button>
+            <button
+              class="btn flex-1"
+              style="justify-content: center"
+              onclick="
+                document
+                  .getElementById('modal-project')
+                  .classList.remove('active')
+              "
+            >
+              Cancelar
+            </button>
           </div>
         </div>
       </div>
@@ -1054,10 +1663,30 @@
     <div class="modal-overlay" id="modal-confirm">
       <div class="modal">
         <h3 class="mb-4" id="confirm-title">Confirmação</h3>
-        <p id="confirm-message" style="margin-bottom: 24px; color: var(--text-secondary); line-height: 1.6; font-size: 0.88rem;"></p>
+        <p
+          id="confirm-message"
+          style="
+            margin-bottom: 24px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-size: 0.88rem;
+          "
+        ></p>
         <div class="flex gap-2">
-          <button class="btn btn-danger flex-1" style="justify-content: center;" id="confirm-btn-yes">Confirmar</button>
-          <button class="btn flex-1" style="justify-content: center;" onclick="ConfirmModal.close()">Cancelar</button>
+          <button
+            class="btn btn-danger flex-1"
+            style="justify-content: center"
+            id="confirm-btn-yes"
+          >
+            Confirmar
+          </button>
+          <button
+            class="btn flex-1"
+            style="justify-content: center"
+            onclick="ConfirmModal.close()"
+          >
+            Cancelar
+          </button>
         </div>
       </div>
     </div>
@@ -1126,7 +1755,7 @@
       const STORAGE_KEY = "leadManagerData_v1";
 
       const defaultState = {
-        tasks: [],    // lista única: inbox + triaged + execution + delegated + history
+        tasks: [], // lista única: inbox + triaged + execution + delegated + history
         projects: [],
       };
 
@@ -1162,56 +1791,101 @@
           const tasks = [];
           const today = new Date().toISOString().split("T")[0];
 
-          (AppState.inbox || []).forEach(item => {
-            tasks.push({ id: item.id, text: item.text, createdAt: item.createdAt || new Date().toISOString(), done: false });
-          });
-
-          (AppState.triaged || []).forEach(item => {
+          (AppState.inbox || []).forEach((item) => {
             tasks.push({
-              id: item.id, text: item.originalText, createdAt: new Date().toISOString(),
-              type: item.type, category: item.category, score: item.score, quadrant: item.quadrant,
-              projectId: item.projectId || null, subtaskId: item.subtaskId || null, done: item.done || false,
+              id: item.id,
+              text: item.text,
+              createdAt: item.createdAt || new Date().toISOString(),
+              done: false,
             });
           });
 
-          (AppState.execution || []).forEach(entry => {
-            const task = tasks.find(t => t.id === entry.taskId);
+          (AppState.triaged || []).forEach((item) => {
+            tasks.push({
+              id: item.id,
+              text: item.originalText,
+              createdAt: new Date().toISOString(),
+              type: item.type,
+              category: item.category,
+              score: item.score,
+              quadrant: item.quadrant,
+              projectId: item.projectId || null,
+              subtaskId: item.subtaskId || null,
+              done: item.done || false,
+            });
+          });
+
+          (AppState.execution || []).forEach((entry) => {
+            const task = tasks.find((t) => t.id === entry.taskId);
             if (task) {
-              task.execDate = entry.date; task.execDay = entry.day;
-              task.execTime = entry.time; task.execStatus = entry.status;
-              if (entry.status === "Concluído") { task.execCompletedAt = today; task.done = true; }
+              task.execDate = entry.date;
+              task.execDay = entry.day;
+              task.execTime = entry.time;
+              task.execStatus = entry.status;
+              if (entry.status === "Concluído") {
+                task.execCompletedAt = today;
+                task.done = true;
+              }
             }
           });
 
-          (AppState.delegated || []).forEach(entry => {
-            const task = tasks.find(t => t.text === entry.title && (t.category === "delegar" || t.quadrant === "q3"));
+          (AppState.delegated || []).forEach((entry) => {
+            const task = tasks.find(
+              (t) =>
+                t.text === entry.title &&
+                (t.category === "delegar" || t.quadrant === "q3"),
+            );
             if (task) {
-              task.responsavel = entry.resp || ""; task.delegStatus = entry.status;
-              if (entry.status === "done") { task.delegCompletedAt = today; task.done = true; }
+              task.responsavel = entry.resp || "";
+              task.delegStatus = entry.status;
+              if (entry.status === "done") {
+                task.delegCompletedAt = today;
+                task.done = true;
+              }
             } else {
               tasks.push({
-                id: entry.id, text: entry.title, createdAt: new Date().toISOString(),
-                category: "delegar", quadrant: "q3", responsavel: entry.resp || "",
-                delegStatus: entry.status, done: entry.status === "done",
+                id: entry.id,
+                text: entry.title,
+                createdAt: new Date().toISOString(),
+                category: "delegar",
+                quadrant: "q3",
+                responsavel: entry.resp || "",
+                delegStatus: entry.status,
+                done: entry.status === "done",
                 delegCompletedAt: entry.status === "done" ? today : null,
               });
             }
           });
 
-          (AppState.history || []).forEach(h => {
+          (AppState.history || []).forEach((h) => {
             if (h.type === "Execução") {
-              const task = tasks.find(t => t.text === h.title && !t.execCompletedAt);
-              if (task) { task.done = true; task.execCompletedAt = today; task.execStatus = "Concluído"; }
+              const task = tasks.find(
+                (t) => t.text === h.title && !t.execCompletedAt,
+              );
+              if (task) {
+                task.done = true;
+                task.execCompletedAt = today;
+                task.execStatus = "Concluído";
+              }
             } else if (h.type === "Delegada") {
-              const task = tasks.find(t => t.text === h.title && !t.delegCompletedAt);
-              if (task) { task.done = true; task.delegCompletedAt = today; task.delegStatus = "done"; }
+              const task = tasks.find(
+                (t) => t.text === h.title && !t.delegCompletedAt,
+              );
+              if (task) {
+                task.done = true;
+                task.delegCompletedAt = today;
+                task.delegStatus = "done";
+              }
             }
           });
 
           AppState.tasks = tasks;
           if (!AppState.projects) AppState.projects = [];
-          delete AppState.inbox; delete AppState.triaged;
-          delete AppState.execution; delete AppState.delegated; delete AppState.history;
+          delete AppState.inbox;
+          delete AppState.triaged;
+          delete AppState.execution;
+          delete AppState.delegated;
+          delete AppState.history;
           this.save();
           console.log("[Migração] Modelo unificado:", tasks.length, "tarefas");
         },
@@ -1354,7 +2028,9 @@
             ProjCtrl.render();
             Toast.show("Demanda enviada diretamente para Projetos!", "success");
 
-            const projTab = document.querySelector('.nav-item[data-target="mod-projects"]');
+            const projTab = document.querySelector(
+              '.nav-item[data-target="mod-projects"]',
+            );
             projTab.style.background = "rgba(16, 185, 129, 0.2)";
             projTab.style.transition = "background 0.3s ease";
             setTimeout(() => (projTab.style.background = ""), 800);
@@ -1373,7 +2049,7 @@
           this.render();
         },
         delete(id) {
-          AppState.tasks = AppState.tasks.filter(t => t.id !== id);
+          AppState.tasks = AppState.tasks.filter((t) => t.id !== id);
           App.save();
           this.render();
         },
@@ -1385,13 +2061,13 @@
         },
         render() {
           const container = document.getElementById("inbox-list-container");
-          const inbox = AppState.tasks.filter(t => !t.quadrant);
+          const inbox = AppState.tasks.filter((t) => !t.quadrant);
           container.innerHTML =
             inbox.length === 0
               ? '<p style="color:var(--text-secondary); font-size:0.875rem;">Caixa de entrada vazia.</p>'
               : "";
 
-          inbox.forEach(item => {
+          inbox.forEach((item) => {
             const div = document.createElement("div");
             div.className = "inbox-item";
             div.innerHTML = `
@@ -1512,9 +2188,11 @@
           const select = document.getElementById("triage-demand-select");
           select.innerHTML =
             '<option value="">Selecione uma demanda da Caixa de Entrada...</option>';
-          AppState.tasks.filter(t => !t.quadrant).forEach(item => {
-            select.innerHTML += `<option value="${item.id}">${item.text}</option>`;
-          });
+          AppState.tasks
+            .filter((t) => !t.quadrant)
+            .forEach((item) => {
+              select.innerHTML += `<option value="${item.id}">${item.text}</option>`;
+            });
           this.updateProjectDropdown();
         },
         updateProjectDropdown() {
@@ -1526,14 +2204,22 @@
           });
         },
         saveTriage() {
-          const demandId = document.getElementById("triage-demand-select").value;
-          if (!demandId) return Toast.show("Selecione uma demanda na lista!", "warning");
+          const demandId = document.getElementById(
+            "triage-demand-select",
+          ).value;
+          if (!demandId)
+            return Toast.show("Selecione uma demanda na lista!", "warning");
 
-          const selectedRadios = document.querySelectorAll(".radio-btn.selected");
+          const selectedRadios = document.querySelectorAll(
+            ".radio-btn.selected",
+          );
           if (selectedRadios.length < 5)
-            return Toast.show("Preencha todos os 5 condicionantes para continuar!", "warning");
+            return Toast.show(
+              "Preencha todos os 5 condicionantes para continuar!",
+              "warning",
+            );
 
-          const task = AppState.tasks.find(t => t.id === demandId);
+          const task = AppState.tasks.find((t) => t.id === demandId);
           if (!task) return;
 
           const evalData = this.evaluateMatrix();
@@ -1546,17 +2232,31 @@
           if (evalData.quad === "q3" || task.category === "delegar") {
             task.responsavel = "";
             task.delegStatus = "plan";
-            Toast.show("Triagem salva! Demanda enviada para Monitoramento (Delegada).", "success");
+            Toast.show(
+              "Triagem salva! Demanda enviada para Monitoramento (Delegada).",
+              "success",
+            );
           } else {
-            Toast.show("Triagem salva! Demanda aguardando no Plano de Execução.", "success");
+            Toast.show(
+              "Triagem salva! Demanda aguardando no Plano de Execução.",
+              "success",
+            );
           }
 
-          const linkedProjectId = document.getElementById("triage-project-link").value;
+          const linkedProjectId = document.getElementById(
+            "triage-project-link",
+          ).value;
           if (linkedProjectId) {
-            const project = AppState.projects.find(p => p.id === linkedProjectId);
+            const project = AppState.projects.find(
+              (p) => p.id === linkedProjectId,
+            );
             if (project) {
               if (!project.subtasks) project.subtasks = [];
-              const subtask = { id: App.generateId(), title: task.text, done: false };
+              const subtask = {
+                id: App.generateId(),
+                title: task.text,
+                done: false,
+              };
               project.subtasks.push(subtask);
               task.projectId = linkedProjectId;
               task.subtaskId = subtask.id;
@@ -1571,7 +2271,9 @@
 
           document.getElementById("triage-demand-select").value = "";
           document.getElementById("triage-project-link").value = "";
-          document.querySelectorAll(".radio-btn").forEach(r => r.classList.remove("selected"));
+          document
+            .querySelectorAll(".radio-btn")
+            .forEach((r) => r.classList.remove("selected"));
           this.evaluateMatrix();
         },
       };
@@ -1583,7 +2285,20 @@
         times: ["08h", "09h", "10h", "11h", "13h", "14h", "15h", "16h"],
         selectedTaskId: null,
         currentWeekStart: null,
-        months: ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"],
+        months: [
+          "Jan",
+          "Fev",
+          "Mar",
+          "Abr",
+          "Mai",
+          "Jun",
+          "Jul",
+          "Ago",
+          "Set",
+          "Out",
+          "Nov",
+          "Dez",
+        ],
 
         init() {
           this.currentWeekStart = this.getWeekStart(new Date());
@@ -1598,49 +2313,67 @@
         },
 
         getWeekDates() {
-          const names = ["Segunda","Terça","Quarta","Quinta","Sexta"];
-          const abbr  = ["SEG","TER","QUA","QUI","SEX"];
+          const names = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"];
+          const abbr = ["SEG", "TER", "QUA", "QUI", "SEX"];
           return names.map((name, i) => {
             const d = new Date(this.currentWeekStart);
             d.setDate(d.getDate() + i);
-            return { date: d, iso: d.toISOString().split("T")[0], name, abbr: abbr[i] };
+            return {
+              date: d,
+              iso: d.toISOString().split("T")[0],
+              name,
+              abbr: abbr[i],
+            };
           });
         },
 
         formatWeekLabel() {
           const dates = this.getWeekDates();
-          const s = dates[0].date, e = dates[4].date;
-          const fmt = d => `${String(d.getDate()).padStart(2,"0")} ${this.months[d.getMonth()]}`;
+          const s = dates[0].date,
+            e = dates[4].date;
+          const fmt = (d) =>
+            `${String(d.getDate()).padStart(2, "0")} ${this.months[d.getMonth()]}`;
           return `${fmt(s)} – ${fmt(e)} ${e.getFullYear()}`;
         },
 
         quadColor(quad) {
-          return { q1:"var(--danger)", q2:"var(--primary-mid)", q3:"var(--warning)", q4:"var(--text-secondary)" }[quad] || "var(--primary-mid)";
+          return (
+            {
+              q1: "var(--danger)",
+              q2: "var(--primary-mid)",
+              q3: "var(--warning)",
+              q4: "var(--text-secondary)",
+            }[quad] || "var(--primary-mid)"
+          );
         },
 
         prevWeek() {
           this.currentWeekStart.setDate(this.currentWeekStart.getDate() - 7);
-          this.renderTaskList(); this.renderTable();
+          this.renderTaskList();
+          this.renderTable();
         },
 
         nextWeek() {
           this.currentWeekStart.setDate(this.currentWeekStart.getDate() + 7);
-          this.renderTaskList(); this.renderTable();
+          this.renderTaskList();
+          this.renderTable();
         },
 
         selectTask(id) {
           this.selectedTaskId = this.selectedTaskId === id ? null : id;
-          this.renderTaskList(); this.renderTable();
+          this.renderTaskList();
+          this.renderTable();
         },
 
         renderTaskList() {
           const container = document.getElementById("exec-task-list");
           if (!container) return;
 
-          const tasks = AppState.tasks.filter(t =>
-            (t.quadrant === "q1" || t.quadrant === "q2") &&
-            !t.done &&
-            !t.execDate
+          const tasks = AppState.tasks.filter(
+            (t) =>
+              (t.quadrant === "q1" || t.quadrant === "q2") &&
+              !t.done &&
+              !t.execDate,
           );
 
           if (tasks.length === 0) {
@@ -1648,7 +2381,7 @@
             return;
           }
           container.innerHTML = "";
-          tasks.forEach(t => {
+          tasks.forEach((t) => {
             const sel = this.selectedTaskId === t.id;
             const div = document.createElement("div");
             div.className = `exec-task-item${sel ? " selected" : ""}`;
@@ -1664,7 +2397,7 @@
         },
 
         renderTable() {
-          const head  = document.getElementById("schedule-head");
+          const head = document.getElementById("schedule-head");
           const tbody = document.getElementById("schedule-body");
           const label = document.getElementById("exec-week-label");
           if (!head || !tbody) return;
@@ -1673,33 +2406,39 @@
           if (label) label.textContent = this.formatWeekLabel();
 
           // Header com datas reais
-          head.innerHTML = '<tr><th class="time-col">Hora</th>' +
-            weekDates.map(d => `<th>
+          head.innerHTML =
+            '<tr><th class="time-col">Hora</th>' +
+            weekDates
+              .map(
+                (d) => `<th>
               <div>${d.abbr}</div>
               <div style="font-size:0.66rem;color:var(--text-secondary);font-weight:400;margin-top:2px;">
-                ${String(d.date.getDate()).padStart(2,"0")} ${this.months[d.date.getMonth()]}
-              </div></th>`).join("") + "</tr>";
+                ${String(d.date.getDate()).padStart(2, "0")} ${this.months[d.date.getMonth()]}
+              </div></th>`,
+              )
+              .join("") +
+            "</tr>";
 
           // Body
           const hasSel = !!this.selectedTaskId;
           tbody.innerHTML = "";
-          this.times.forEach(time => {
+          this.times.forEach((time) => {
             let tr = `<tr><td class="time-col">${time}</td>`;
-            weekDates.forEach(d => {
+            weekDates.forEach((d) => {
               const cellCls = hasSel ? "drop-zone allocatable" : "drop-zone";
               tr += `<td class="${cellCls}" onclick="ExecCtrl.allocateToSlot('${d.iso}','${d.name}','${time}')">`;
               AppState.tasks
-                .filter(t => t.execDate === d.iso && t.execTime === time)
-                .forEach(t => {
-                  const dot    = this.quadColor(t.quadrant);
+                .filter((t) => t.execDate === d.iso && t.execTime === time)
+                .forEach((t) => {
+                  const dot = this.quadColor(t.quadrant);
                   const isDone = t.execStatus === "Concluído";
                   tr += `
                     <div class="task-slot${isDone ? " done" : ""}" id="exec-${t.id}" style="border-left-color:${dot}">
                       <div class="slot-title" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${t.text}">${t.text}</div>
                       <select class="status-select" onchange="ExecCtrl.changeStatus('${t.id}',this.value)">
-                        <option value="Pendente" ${t.execStatus==="Pendente"?"selected":""}>⏳</option>
-                        <option value="Em Andamento" ${t.execStatus==="Em Andamento"?"selected":""}>🔥</option>
-                        <option value="Concluído" ${t.execStatus==="Concluído"?"selected":""}>✅</option>
+                        <option value="Pendente" ${t.execStatus === "Pendente" ? "selected" : ""}>⏳</option>
+                        <option value="Em Andamento" ${t.execStatus === "Em Andamento" ? "selected" : ""}>🔥</option>
+                        <option value="Concluído" ${t.execStatus === "Concluído" ? "selected" : ""}>✅</option>
                       </select>
                       <span style="cursor:pointer;color:var(--danger);margin-left:4px;" onclick="event.stopPropagation();ExecCtrl.remove('${t.id}')">✕</span>
                     </div>`;
@@ -1712,7 +2451,7 @@
 
         allocateToSlot(dateIso, dayName, time) {
           if (!this.selectedTaskId) return;
-          const task = AppState.tasks.find(t => t.id === this.selectedTaskId);
+          const task = AppState.tasks.find((t) => t.id === this.selectedTaskId);
           if (!task) return;
           task.execDate = dateIso;
           task.execDay = dayName;
@@ -1732,7 +2471,7 @@
         },
 
         changeStatus(id, newStatus) {
-          const task = AppState.tasks.find(t => t.id === id);
+          const task = AppState.tasks.find((t) => t.id === id);
           if (!task) return;
 
           if (newStatus !== "Concluído") {
@@ -1749,10 +2488,13 @@
           task.done = true;
 
           if (task.projectId && task.subtaskId) {
-            const proj = AppState.projects.find(p => p.id === task.projectId);
+            const proj = AppState.projects.find((p) => p.id === task.projectId);
             if (proj && proj.subtasks) {
-              const sub = proj.subtasks.find(s => s.id === task.subtaskId);
-              if (sub) { sub.done = true; ProjCtrl.render(); }
+              const sub = proj.subtasks.find((s) => s.id === task.subtaskId);
+              if (sub) {
+                sub.done = true;
+                ProjCtrl.render();
+              }
             }
           }
 
@@ -1763,7 +2505,7 @@
         },
 
         remove(id) {
-          const task = AppState.tasks.find(t => t.id === id);
+          const task = AppState.tasks.find((t) => t.id === id);
           if (!task) return;
           task.execDate = null;
           task.execDay = null;
@@ -1796,7 +2538,7 @@
           document.getElementById("proj-desc").value = "";
         },
         updateStatus(id, newStatus) {
-          const p = AppState.projects.find(x => x.id === id);
+          const p = AppState.projects.find((x) => x.id === id);
           if (p) {
             p.status = newStatus;
             if (newStatus === "done") {
@@ -1808,14 +2550,16 @@
           }
         },
         toggleSubtask(projectId, subtaskId, done) {
-          const project = AppState.projects.find(p => p.id === projectId);
+          const project = AppState.projects.find((p) => p.id === projectId);
           if (!project || !project.subtasks) return;
-          const subtask = project.subtasks.find(s => s.id === subtaskId);
+          const subtask = project.subtasks.find((s) => s.id === subtaskId);
           if (!subtask) return;
 
           subtask.done = done;
 
-          const task = AppState.tasks.find(t => t.projectId === projectId && t.subtaskId === subtaskId);
+          const task = AppState.tasks.find(
+            (t) => t.projectId === projectId && t.subtaskId === subtaskId,
+          );
           if (task) {
             if (done) {
               const today = new Date().toISOString().split("T")[0];
@@ -1856,17 +2600,22 @@
 
             items.forEach((p) => {
               const subtasks = p.subtasks || [];
-              const subtasksHtml = subtasks.length > 0
-                ? `<div style="margin-top:10px; border-top:1px solid var(--border); padding-top:10px; display:flex; flex-direction:column; gap:5px;">
+              const subtasksHtml =
+                subtasks.length > 0
+                  ? `<div style="margin-top:10px; border-top:1px solid var(--border); padding-top:10px; display:flex; flex-direction:column; gap:5px;">
                     <span style="font-size:0.68rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:2px;">Tarefas Associadas</span>
-                    ${subtasks.map((st) => `
+                    ${subtasks
+                      .map(
+                        (st) => `
                       <div style="display:flex; align-items:center; gap:7px;">
                         <input type="checkbox" ${st.done ? "checked" : ""} onchange="ProjCtrl.toggleSubtask('${p.id}','${st.id}',this.checked)"
                           style="width:14px; height:14px; accent-color:var(--primary-mid); cursor:pointer; flex-shrink:0;">
                         <span style="font-size:0.77rem; color:${st.done ? "var(--text-secondary)" : "var(--text-primary)"}; text-decoration:${st.done ? "line-through" : "none"};">${st.title}</span>
-                      </div>`).join("")}
+                      </div>`,
+                      )
+                      .join("")}
                    </div>`
-                : "";
+                  : "";
               col.innerHTML += `
                         <div class="kanban-card project-card" draggable="true" id="proj-${p.id}" data-type="project">
                             <div class="flex justify-between align-center">
@@ -1887,7 +2636,7 @@
        */
       const MonCtrl = {
         updateStatus(id, newStatus) {
-          const task = AppState.tasks.find(t => t.id === id);
+          const task = AppState.tasks.find((t) => t.id === id);
           if (!task) return;
           if (newStatus === "done") {
             task.delegStatus = "done";
@@ -1901,22 +2650,25 @@
           this.render();
         },
         updateResp(id, val) {
-          const task = AppState.tasks.find(t => t.id === id);
+          const task = AppState.tasks.find((t) => t.id === id);
           if (task) {
             task.responsavel = val;
             App.save();
           }
         },
         render() {
-          ["plan", "prog", "done"].forEach(status => {
+          ["plan", "prog", "done"].forEach((status) => {
             const col = document.getElementById(`mon-col-${status}`);
             col.innerHTML = "";
-            const items = AppState.tasks.filter(t =>
-              (t.category === "delegar" || t.quadrant === "q3") && t.delegStatus === status
+            const items = AppState.tasks.filter(
+              (t) =>
+                (t.category === "delegar" || t.quadrant === "q3") &&
+                t.delegStatus === status,
             );
-            document.getElementById(`mon-count-${status}`).innerText = items.length;
+            document.getElementById(`mon-count-${status}`).innerText =
+              items.length;
 
-            items.forEach(t => {
+            items.forEach((t) => {
               col.innerHTML += `
                         <div class="kanban-card" draggable="true" id="mon-${t.id}" data-type="monitor">
                             <h4>${t.text}</h4>
@@ -1940,14 +2692,19 @@
           const seen = new Map();
           // Tarefas do calendário agendadas neste mês
           AppState.tasks
-            .filter(t => t.execDate && t.execDate.substring(0, 7) === month)
-            .forEach(t => seen.set(t.id, t));
+            .filter((t) => t.execDate && t.execDate.substring(0, 7) === month)
+            .forEach((t) => seen.set(t.id, t));
           // Tarefas delegadas: concluídas neste mês ou ativas e criadas neste mês
           AppState.tasks
-            .filter(t => t.category === "delegar" || t.quadrant === "q3")
-            .forEach(t => {
-              const doneInMonth = t.delegCompletedAt && t.delegCompletedAt.substring(0, 7) === month;
-              const activeInMonth = t.delegStatus !== "done" && t.createdAt && t.createdAt.substring(0, 7) === month;
+            .filter((t) => t.category === "delegar" || t.quadrant === "q3")
+            .forEach((t) => {
+              const doneInMonth =
+                t.delegCompletedAt &&
+                t.delegCompletedAt.substring(0, 7) === month;
+              const activeInMonth =
+                t.delegStatus !== "done" &&
+                t.createdAt &&
+                t.createdAt.substring(0, 7) === month;
               if (doneInMonth || activeInMonth) seen.set(t.id, t);
             });
           return [...seen.values()];
@@ -1955,19 +2712,29 @@
         render() {
           const month = document.getElementById("dash-month-filter").value;
 
-          const entries  = this.execMonth(month);
-          const execDone = entries.filter(t => t.execStatus === "Concluído" || t.delegStatus === "done").length;
+          const entries = this.execMonth(month);
+          const execDone = entries.filter(
+            (t) => t.execStatus === "Concluído" || t.delegStatus === "done",
+          ).length;
 
-          const projActive = AppState.projects.filter(p => p.status !== "done").length;
-          const projDone   = AppState.projects.filter(p => p.status === "done").length;
+          const projActive = AppState.projects.filter(
+            (p) => p.status !== "done",
+          ).length;
+          const projDone = AppState.projects.filter(
+            (p) => p.status === "done",
+          ).length;
 
-          document.getElementById("kpi-tasks").innerText = `${execDone} / ${entries.length}`;
-          document.getElementById("kpi-projects").innerText = `${projActive} / ${projDone}`;
+          document.getElementById("kpi-tasks").innerText =
+            `${execDone} / ${entries.length}`;
+          document.getElementById("kpi-projects").innerText =
+            `${projActive} / ${projDone}`;
           document.getElementById("kpi-inbox").innerText =
-            AppState.tasks.filter(t => !t.quadrant).length;
+            AppState.tasks.filter((t) => !t.quadrant).length;
           document.getElementById("kpi-delegated").innerText =
-            AppState.tasks.filter(t =>
-              (t.category === "delegar" || t.quadrant === "q3") && t.delegStatus !== "done"
+            AppState.tasks.filter(
+              (t) =>
+                (t.category === "delegar" || t.quadrant === "q3") &&
+                t.delegStatus !== "done",
             ).length;
 
           this.renderCharts(execDone, entries.length - execDone, month);
@@ -1996,7 +2763,13 @@
               responsive: true,
               maintainAspectRatio: false,
               plugins: {
-                legend: { labels: { color: "#eeeeff", font: { size: 11 }, boxWidth: 10 } },
+                legend: {
+                  labels: {
+                    color: "#eeeeff",
+                    font: { size: 11 },
+                    boxWidth: 10,
+                  },
+                },
                 title: {
                   display: true,
                   text: "Taxa de Execução no Mês",
@@ -2009,13 +2782,28 @@
           });
 
           // Chart 2: Comparativo dos últimos 3 meses com dados reais
-          const monthNames = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+          const monthNames = [
+            "Jan",
+            "Fev",
+            "Mar",
+            "Abr",
+            "Mai",
+            "Jun",
+            "Jul",
+            "Ago",
+            "Set",
+            "Out",
+            "Nov",
+            "Dez",
+          ];
           const [refYear, refMon] = currentMonth.split("-").map(Number);
           const last3 = [-2, -1, 0].map((offset) => {
             const d = new Date(refYear, refMon - 1 + offset, 1);
             const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
             const label = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
-            const count = this.execMonth(key).filter(t => t.execStatus === "Concluído" || t.delegStatus === "done").length;
+            const count = this.execMonth(key).filter(
+              (t) => t.execStatus === "Concluído" || t.delegStatus === "done",
+            ).length;
             return { label, count };
           });
 
@@ -2040,11 +2828,23 @@
               responsive: true,
               maintainAspectRatio: false,
               scales: {
-                y: { ticks: { color: "#7878a0", font: { size: 10 } }, grid: { color: "rgba(255,255,255,0.05)" } },
-                x: { ticks: { color: "#7878a0", font: { size: 10 } }, grid: { display: false } },
+                y: {
+                  ticks: { color: "#7878a0", font: { size: 10 } },
+                  grid: { color: "rgba(255,255,255,0.05)" },
+                },
+                x: {
+                  ticks: { color: "#7878a0", font: { size: 10 } },
+                  grid: { display: false },
+                },
               },
               plugins: {
-                legend: { labels: { color: "#eeeeff", font: { size: 11 }, boxWidth: 10 } },
+                legend: {
+                  labels: {
+                    color: "#eeeeff",
+                    font: { size: 11 },
+                    boxWidth: 10,
+                  },
+                },
                 title: {
                   display: true,
                   text: "Comparativo Mensal",
@@ -2060,22 +2860,41 @@
           const container = document.getElementById("history-container");
           const items = [];
 
-          AppState.tasks.filter(t => t.execStatus === "Concluído").forEach(t => {
-            items.push({ title: t.text, type: "Execução", date: t.execCompletedAt || "" });
-          });
-          AppState.tasks.filter(t => t.delegStatus === "done").forEach(t => {
-            items.push({ title: t.text, type: "Delegada", date: t.delegCompletedAt || "" });
-          });
-          AppState.projects.filter(p => p.status === "done").forEach(p => {
-            items.push({ title: p.title, type: "Projeto", date: p.completedAt || "" });
-          });
+          AppState.tasks
+            .filter((t) => t.execStatus === "Concluído")
+            .forEach((t) => {
+              items.push({
+                title: t.text,
+                type: "Execução",
+                date: t.execCompletedAt || "",
+              });
+            });
+          AppState.tasks
+            .filter((t) => t.delegStatus === "done")
+            .forEach((t) => {
+              items.push({
+                title: t.text,
+                type: "Delegada",
+                date: t.delegCompletedAt || "",
+              });
+            });
+          AppState.projects
+            .filter((p) => p.status === "done")
+            .forEach((p) => {
+              items.push({
+                title: p.title,
+                type: "Projeto",
+                date: p.completedAt || "",
+              });
+            });
 
           items.sort((a, b) => (b.date > a.date ? 1 : -1));
 
-          container.innerHTML = items.length === 0
-            ? '<p style="color:var(--text-secondary); font-size:0.875rem;">Nenhum histórico registrado.</p>'
-            : "";
-          items.forEach(h => {
+          container.innerHTML =
+            items.length === 0
+              ? '<p style="color:var(--text-secondary); font-size:0.875rem;">Nenhum histórico registrado.</p>'
+              : "";
+          items.forEach((h) => {
             const dateStr = h.date
               ? new Date(h.date + "T00:00:00").toLocaleDateString("pt-BR")
               : "—";
@@ -2088,28 +2907,55 @@
           });
         },
         exportExcel() {
-          const statusLabel = { plan: "Planejamento", prog: "Em Andamento", done: "Concluído" };
+          const statusLabel = {
+            plan: "Planejamento",
+            prog: "Em Andamento",
+            done: "Concluído",
+          };
           let data = [["Origem", "Título", "Data", "Status"]];
 
-          AppState.tasks.forEach(t => {
+          AppState.tasks.forEach((t) => {
             if (t.execDate) {
-              data.push([t.type || "Execução", t.text, t.execDate, t.execStatus || "Pendente"]);
+              data.push([
+                t.type || "Execução",
+                t.text,
+                t.execDate,
+                t.execStatus || "Pendente",
+              ]);
             } else if (t.delegStatus) {
-              data.push(["Delegada", t.text, "—", statusLabel[t.delegStatus] || t.delegStatus]);
+              data.push([
+                "Delegada",
+                t.text,
+                "—",
+                statusLabel[t.delegStatus] || t.delegStatus,
+              ]);
             }
           });
 
-          AppState.projects.forEach(p => {
-            data.push(["Projeto", p.title, "—", statusLabel[p.status] || p.status]);
-            (p.subtasks || []).forEach(st =>
-              data.push(["Subtarefa", st.title, "—", st.done ? "Concluído" : "Pendente"])
+          AppState.projects.forEach((p) => {
+            data.push([
+              "Projeto",
+              p.title,
+              "—",
+              statusLabel[p.status] || p.status,
+            ]);
+            (p.subtasks || []).forEach((st) =>
+              data.push([
+                "Subtarefa",
+                st.title,
+                "—",
+                st.done ? "Concluído" : "Pendente",
+              ]),
             );
           });
 
           const ws = XLSX.utils.aoa_to_sheet(data);
           const wb = XLSX.utils.book_new();
           XLSX.utils.book_append_sheet(wb, ws, "Relatorio");
-          XLSX.writeFile(wb, `relatorio_lideranca_${new Date().getTime()}.xlsx`);
+          XLSX.writeFile(
+            wb,
+            `relatorio_lideranca_${new Date().getTime()}.xlsx`,
+          );
         },
       };
 
