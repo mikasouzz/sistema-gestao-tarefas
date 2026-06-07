@@ -9,7 +9,6 @@
       rel="stylesheet"
     />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <style>
       :root {
         --bg-base: #08080f;
@@ -1851,6 +1850,10 @@
                 </svg>
               </button>
             </div>
+            <div id="exec-archive-notice" style="display:none;align-items:center;gap:9px;background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.22);border-radius:var(--radius-sm);padding:8px 14px;font-size:0.78rem;color:var(--warning);flex-shrink:0;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Semana passada — somente visualização
+            </div>
             <div class="schedule-table-wrap">
               <table class="schedule-table">
                 <thead id="schedule-head"></thead>
@@ -1995,25 +1998,14 @@
             onchange="DashCtrl.render()"
             style="max-width: 175px"
           />
-          <button class="btn btn-primary" onclick="DashCtrl.exportExcel()">
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path
-                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-              ></path>
+          <button class="btn" disabled style="opacity:0.45;cursor:not-allowed;" title="Em breve">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
               <polyline points="14 2 14 8 20 8"></polyline>
               <line x1="16" y1="13" x2="8" y2="13"></line>
               <line x1="16" y1="17" x2="8" y2="17"></line>
             </svg>
-            Gerar Relatório Excel
+            Relatório Excel — Em breve
           </button>
         </div>
         <div class="kpi-grid">
@@ -2205,15 +2197,19 @@
        * ESTADO GLOBAL E PERSISTÊNCIA (CRÍTICO)
        */
       const STORAGE_KEY = "leadManagerData_v1";
+      const ARCHIVE_KEY = "leadManagerData_archive_v1";
 
       const defaultState = {
-        tasks: [], // lista única: inbox + triaged + execution + delegated + history
+        tasks: [],
         projects: [],
       };
 
       let AppState =
         JSON.parse(localStorage.getItem(STORAGE_KEY)) ||
         JSON.parse(JSON.stringify(defaultState));
+
+      let AppArchive =
+        JSON.parse(localStorage.getItem(ARCHIVE_KEY)) || { tasks: [] };
 
       const App = {
         navigate(targetId) {
@@ -2223,6 +2219,7 @@
         },
         init() {
           this.migrateIfNeeded();
+          this.archiveOldTasks();
           this.bindNav();
           this.setupFileImport();
           this.setDefaultMonths();
@@ -2242,7 +2239,31 @@
         },
         save() {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(AppState));
-          console.log("[Auto-Sync] Estado persistido localmente.");
+        },
+        saveArchive() {
+          localStorage.setItem(ARCHIVE_KEY, JSON.stringify(AppArchive));
+        },
+        archiveOldTasks() {
+          const cutoff = new Date();
+          cutoff.setDate(cutoff.getDate() - 30);
+          const cutoffStr = cutoff.toISOString().split("T")[0];
+
+          const toArchive = AppState.tasks.filter((t) => {
+            if (!t.done) return false;
+            const completedAt = t.execCompletedAt || t.delegCompletedAt;
+            return completedAt && completedAt < cutoffStr;
+          });
+
+          if (toArchive.length === 0) return;
+
+          AppArchive.tasks.push(...toArchive);
+          this.saveArchive();
+
+          const ids = new Set(toArchive.map((t) => t.id));
+          AppState.tasks = AppState.tasks.filter((t) => !ids.has(t.id));
+          this.save();
+
+          console.log(`[Arquivo] ${toArchive.length} tarefa(s) arquivada(s).`);
         },
         migrateIfNeeded() {
           if (AppState.tasks !== undefined) return;
@@ -2349,18 +2370,19 @@
           console.log("[Migração] Modelo unificado:", tasks.length, "tarefas");
         },
         exportData() {
+          const payload = { state: AppState, archive: AppArchive };
           const dataStr =
             "data:text/json;charset=utf-8," +
-            encodeURIComponent(JSON.stringify(AppState, null, 2));
-          const downloadAnchorNode = document.createElement("a");
-          downloadAnchorNode.setAttribute("href", dataStr);
-          downloadAnchorNode.setAttribute(
+            encodeURIComponent(JSON.stringify(payload, null, 2));
+          const a = document.createElement("a");
+          a.setAttribute("href", dataStr);
+          a.setAttribute(
             "download",
             `backup_lideranca_${new Date().toISOString().split("T")[0]}.json`,
           );
-          document.body.appendChild(downloadAnchorNode);
-          downloadAnchorNode.click();
-          downloadAnchorNode.remove();
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
           Toast.show("Backup exportado com sucesso!", "success");
         },
         setupFileImport() {
@@ -2372,13 +2394,23 @@
               const reader = new FileReader();
               reader.onload = function (e) {
                 try {
-                  AppState = JSON.parse(e.target.result);
-                  App.save();
+                  const parsed = JSON.parse(e.target.result);
+                  // Novo formato: { state, archive }
+                  if (parsed.state) {
+                    AppState = parsed.state;
+                    AppArchive = parsed.archive || { tasks: [] };
+                    App.save();
+                    App.saveArchive();
+                  } else {
+                    // Formato legado: só AppState direto
+                    AppState = parsed;
+                    App.save();
+                  }
                   Toast.show(
                     "Backup importado com sucesso! Atualizando...",
                     "success",
                   );
-                  setTimeout(() => location.reload(), 1500); // Recarrega suavemente
+                  setTimeout(() => location.reload(), 1500);
                 } catch (err) {
                   Toast.show("Erro ao ler o arquivo JSON.", "error");
                 }
@@ -2392,7 +2424,9 @@
             "ATENÇÃO: Deseja mesmo apagar TODOS os dados do sistema? Esta ação não pode ser desfeita.",
             () => {
               AppState = JSON.parse(JSON.stringify(defaultState));
+              AppArchive = { tasks: [] };
               App.save();
+              App.saveArchive();
               Toast.show("Dados apagados. Atualizando...", "warning");
               setTimeout(() => location.reload(), 1500);
             },
@@ -2925,19 +2959,44 @@
               .join("") +
             "</tr>";
 
+          // Semana passada?
+          const todayWeekStart = this.getWeekStart(new Date());
+          const isPastWeek = this.currentWeekStart < todayWeekStart;
+          const notice = document.getElementById("exec-archive-notice");
+          if (notice) notice.style.display = isPastWeek ? "flex" : "none";
+
+          // Índice de tarefas da semana (O(n) em vez de O(n×40))
+          const weekStart = weekDates[0].iso;
+          const weekEnd = weekDates[4].iso;
+          const taskIndex = new Map();
+          const addToIndex = (t) => {
+            if (!t.execDate || t.execDate < weekStart || t.execDate > weekEnd) return;
+            const key = `${t.execDate}|${t.execTime}`;
+            if (!taskIndex.has(key)) taskIndex.set(key, []);
+            taskIndex.get(key).push(t);
+          };
+          AppState.tasks.forEach(addToIndex);
+          if (isPastWeek) AppArchive.tasks.forEach(addToIndex);
+
           // Body
-          const hasSel = !!this.selectedTaskId;
+          const hasSel = !isPastWeek && !!this.selectedTaskId;
           tbody.innerHTML = "";
           this.times.forEach((time) => {
             let tr = `<tr><td class="time-col">${time}</td>`;
             weekDates.forEach((d) => {
               const cellCls = hasSel ? "drop-zone allocatable" : "drop-zone";
-              tr += `<td class="${cellCls}" data-date="${d.iso}" data-day="${d.name}" data-time="${time}" onclick="ExecCtrl.allocateToSlot('${d.iso}','${d.name}','${time}')">`;
-              AppState.tasks
-                .filter((t) => t.execDate === d.iso && t.execTime === time)
-                .forEach((t) => {
-                  const dot = this.quadColor(t.quadrant);
-                  const isDone = t.execStatus === "Concluído";
+              const onclick = isPastWeek ? "" : `onclick="ExecCtrl.allocateToSlot('${d.iso}','${d.name}','${time}')"`;
+              tr += `<td class="${cellCls}" data-date="${d.iso}" data-day="${d.name}" data-time="${time}" ${onclick}>`;
+              (taskIndex.get(`${d.iso}|${time}`) || []).forEach((t) => {
+                const dot = this.quadColor(t.quadrant);
+                const isDone = t.execStatus === "Concluído";
+                if (isPastWeek) {
+                  tr += `
+                    <div class="task-slot${isDone ? " done" : ""}" style="border-left-color:${dot};cursor:default;">
+                      <div class="slot-title" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${t.text}">${t.text}</div>
+                      <span style="font-size:0.68rem;color:var(--text-secondary);flex-shrink:0;">${t.execStatus || "—"}</span>
+                    </div>`;
+                } else {
                   tr += `
                     <div class="task-slot${isDone ? " done" : ""}" id="exec-${t.id}" data-exec-id="${t.id}" draggable="true" style="border-left-color:${dot}">
                       <div class="slot-title" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${t.text}">${t.text}</div>
@@ -2952,7 +3011,8 @@
                       </select>
                       <span style="cursor:pointer;color:var(--danger);margin-left:4px;" ondragstart="event.stopPropagation()" onclick="event.stopPropagation();ExecCtrl.remove('${t.id}')">✕</span>
                     </div>`;
-                });
+                }
+              });
               tr += `</td>`;
             });
             tbody.innerHTML += tr + `</tr>`;
@@ -2961,9 +3021,13 @@
 
         changeDate(id, newDate) {
           if (!newDate) return;
+          const d = new Date(newDate + "T12:00:00");
+          if (this.getWeekStart(d) < this.getWeekStart(new Date())) {
+            Toast.show("Não é possível reagendar para uma semana passada.", "warning");
+            return;
+          }
           const task = AppState.tasks.find((t) => t.id === id);
           if (!task) return;
-          const d = new Date(newDate + "T12:00:00");
           const days = ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
           task.execDate = newDate;
           task.execDay = days[d.getDay()];
@@ -2977,6 +3041,10 @@
         },
 
         moveToSlot(id, dateIso, dayName, time) {
+          if (this.getWeekStart(new Date(dateIso + "T12:00:00")) < this.getWeekStart(new Date())) {
+            Toast.show("Não é possível mover para uma semana passada.", "warning");
+            return;
+          }
           const task = AppState.tasks.find((t) => t.id === id);
           if (!task) return;
           task.execDate = dateIso;
@@ -3444,57 +3512,6 @@
                         </div>
                     `;
           });
-        },
-        exportExcel() {
-          const statusLabel = {
-            plan: "Planejamento",
-            prog: "Em Andamento",
-            done: "Concluído",
-          };
-          let data = [["Origem", "Título", "Data", "Status"]];
-
-          AppState.tasks.forEach((t) => {
-            if (t.execDate) {
-              data.push([
-                t.type || "Execução",
-                t.text,
-                t.execDate,
-                t.execStatus || "Pendente",
-              ]);
-            } else if (t.delegStatus) {
-              data.push([
-                "Delegada",
-                t.text,
-                "—",
-                statusLabel[t.delegStatus] || t.delegStatus,
-              ]);
-            }
-          });
-
-          AppState.projects.forEach((p) => {
-            data.push([
-              "Projeto",
-              p.title,
-              "—",
-              statusLabel[p.status] || p.status,
-            ]);
-            (p.subtasks || []).forEach((st) =>
-              data.push([
-                "Subtarefa",
-                st.title,
-                "—",
-                st.done ? "Concluído" : "Pendente",
-              ]),
-            );
-          });
-
-          const ws = XLSX.utils.aoa_to_sheet(data);
-          const wb = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(wb, ws, "Relatorio");
-          XLSX.writeFile(
-            wb,
-            `relatorio_lideranca_${new Date().getTime()}.xlsx`,
-          );
         },
       };
 
