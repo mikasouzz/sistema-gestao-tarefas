@@ -1689,6 +1689,17 @@
             </div>
 
             <div class="mb-4">
+              <label>Fonte</label>
+              <select id="triage-fonte">
+                <option value="Diretoria">Diretoria</option>
+                <option value="Equipe">Equipe</option>
+                <option value="Intersetorial">Intersetorial</option>
+                <option value="Externa">Externa</option>
+                <option value="Própria">Própria</option>
+              </select>
+            </div>
+
+            <div class="mb-4">
               <label>Associar a Projeto (opcional)</label>
               <select id="triage-project-link">
                 <option value="">— Nenhum projeto —</option>
@@ -2720,6 +2731,7 @@
 
           task.type = document.getElementById("triage-type").value;
           task.category = document.getElementById("triage-category").value;
+          task.fonte = document.getElementById("triage-fonte").value;
           task.score = evalData.score;
           task.quadrant = evalData.quad;
 
