@@ -988,6 +988,135 @@
         margin-bottom: 5px;
       }
 
+      /* ─── CORTINA (SPLASH OVERLAY) ───────────────── */
+      #app-curtain {
+        position: fixed;
+        inset: 0;
+        z-index: 999;
+        background: var(--bg-base);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        transition: transform 0.72s cubic-bezier(0.76, 0, 0.24, 1);
+        will-change: transform;
+      }
+      #app-curtain::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          ellipse 70% 55% at 50% 45%,
+          rgba(124, 58, 237, 0.12) 0%,
+          transparent 70%
+        );
+        pointer-events: none;
+      }
+      #app-curtain::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 6px;
+        background: linear-gradient(
+          to right,
+          transparent,
+          var(--primary) 30%,
+          var(--primary-light) 50%,
+          var(--primary) 70%,
+          transparent
+        );
+        opacity: 0.6;
+      }
+      #app-curtain.lifting {
+        transform: translateY(-100%);
+      }
+      .curtain-logo {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 40px rgba(124, 58, 237, 0.4), 0 0 80px rgba(124, 58, 237, 0.15);
+        margin-bottom: 28px;
+        animation: curtainPulse 3s ease-in-out infinite;
+      }
+      @keyframes curtainPulse {
+        0%, 100% { box-shadow: 0 0 40px rgba(124,58,237,0.4), 0 0 80px rgba(124,58,237,0.15); }
+        50% { box-shadow: 0 0 55px rgba(139,92,246,0.55), 0 0 100px rgba(139,92,246,0.22); }
+      }
+      .curtain-title {
+        font-size: 2.1rem;
+        font-weight: 800;
+        background: linear-gradient(to right, var(--text-primary) 40%, var(--primary-light));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 8px;
+        text-align: center;
+        letter-spacing: -0.02em;
+      }
+      .curtain-user {
+        font-size: 0.92rem;
+        color: var(--text-secondary);
+        font-weight: 400;
+        margin-bottom: 6px;
+        text-align: center;
+      }
+      .curtain-date {
+        font-size: 0.78rem;
+        color: var(--text-tertiary);
+        margin-bottom: 36px;
+        text-align: center;
+        letter-spacing: 0.03em;
+      }
+      .curtain-enter-btn {
+        background: linear-gradient(135deg, var(--primary), var(--primary-mid));
+        color: #fff;
+        border: none;
+        padding: 13px 32px;
+        border-radius: var(--radius);
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.92rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 6px 24px rgba(109, 40, 217, 0.4);
+        transition: var(--transition);
+        margin-bottom: 14px;
+        letter-spacing: 0.01em;
+      }
+      .curtain-enter-btn:hover {
+        background: linear-gradient(135deg, var(--primary-mid), var(--primary-light));
+        box-shadow: 0 8px 32px rgba(139, 92, 246, 0.52);
+        transform: translateY(-2px);
+      }
+      .curtain-enter-btn:active {
+        transform: translateY(0);
+      }
+      .curtain-hint {
+        font-size: 0.68rem;
+        color: var(--text-tertiary);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+      .curtain-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        animation: curtainFadeIn 0.9s ease forwards;
+        opacity: 0;
+      }
+      @keyframes curtainFadeIn {
+        from { opacity: 0; transform: translateY(14px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
       /* ─── HOME SCREEN ─────────────────────────────── */
       .home-header {
         display: flex;
@@ -1956,6 +2085,29 @@
     <!-- Container de Notificações (Toasts) -->
     <div id="toast-container" class="toast-container"></div>
 
+    <!-- Cortina de Entrada -->
+    <div id="app-curtain">
+      <div class="curtain-content">
+        <div class="curtain-logo">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        </div>
+        <h1 class="curtain-title">Gestão de Tarefas</h1>
+        <p class="curtain-user">Mikaella Souza &nbsp;·&nbsp; Supervisão</p>
+        <p class="curtain-date" id="curtain-date"></p>
+        <button class="curtain-enter-btn" onclick="Curtain.open()">
+          Acessar o Sistema
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+        <p class="curtain-hint">ou pressione Enter</p>
+      </div>
+    </div>
+
     <script>
       /**
        * SISTEMA DE NOTIFICAÇÕES (TOASTS E MODALS)
@@ -2037,6 +2189,7 @@
           this.setupFileImport();
           this.setDefaultMonths();
 
+          Curtain.init();
           HomeCtrl.render();
           InboxCtrl.render();
           TriageCtrl.renderCriteria();
@@ -3225,6 +3378,30 @@
             wb,
             `relatorio_lideranca_${new Date().getTime()}.xlsx`,
           );
+        },
+      };
+
+      /**
+       * CORTINA DE ENTRADA
+       */
+      const Curtain = {
+        init() {
+          const now = new Date();
+          const opts = { weekday: "long", day: "numeric", month: "long", year: "numeric" };
+          const dateStr = now.toLocaleDateString("pt-BR", opts);
+          document.getElementById("curtain-date").textContent =
+            dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+
+          document.addEventListener("keydown", (e) => {
+            const el = document.getElementById("app-curtain");
+            if (e.key === "Enter" && el) this.open();
+          });
+        },
+        open() {
+          const el = document.getElementById("app-curtain");
+          if (!el) return;
+          el.classList.add("lifting");
+          setTimeout(() => el.remove(), 750);
         },
       };
 
