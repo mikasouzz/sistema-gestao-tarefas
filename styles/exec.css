@@ -102,6 +102,7 @@
 }
 .schedule-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   background: var(--bg-elevated);
   border-radius: var(--radius);
@@ -110,8 +111,13 @@
 .schedule-table th,
 .schedule-table td {
   border: 1px solid var(--border);
-  padding: 7px 10px;
+  padding: 6px 7px;
   text-align: left;
+}
+.schedule-table th:not(.time-col),
+.schedule-table td:not(.time-col) {
+  width: 80px;
+  min-width: 70px;
 }
 .schedule-table th {
   background: var(--bg-surface);
@@ -131,7 +137,7 @@
   background: var(--bg-surface) !important;
 }
 .drop-zone {
-  min-height: 50px;
+  height: 72px;
   background: transparent;
   border-radius: 6px;
   padding: 3px;
@@ -160,6 +166,9 @@
   align-items: center;
   gap: 5px;
   cursor: grab;
+  max-width: 200px;
+  min-width: 0;
+  box-sizing: border-box;
 }
 .task-slot.dragging {
   opacity: 0.35;

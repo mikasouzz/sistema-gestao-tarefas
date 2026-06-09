@@ -28,3 +28,8 @@
   border-color: var(--border-strong);
   background: var(--bg-surface);
 }
+
+.inbox-action-btn {
+  padding: 5px 11px;
+  font-size: 0.78rem;
+}
