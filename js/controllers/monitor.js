@@ -3,6 +3,7 @@ import { App } from "../app.js";
 import { Toast } from "../toast.js";
 import { EditModal } from "../editModal.js";
 import { todayISO } from "../date.js";
+import { SyncCtrl } from "../sync.js";
 
 export const MonCtrl = {
   updateStatus(id, newStatus) {
@@ -42,6 +43,7 @@ export const MonCtrl = {
         if (idx === -1) return;
         AppState.tasks.splice(idx, 1);
         App.save();
+        SyncCtrl.deleteTask(id);
         MonCtrl.render();
         Toast.show("Tarefa excluída.", "error");
       },

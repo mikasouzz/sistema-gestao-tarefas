@@ -4,6 +4,7 @@ import { Toast } from "../toast.js";
 import { ProjCtrl } from "./projects.js";
 import { EditModal } from "../editModal.js";
 import { localDateISO, todayISO } from "../date.js";
+import { SyncCtrl } from "../sync.js";
 
 export const ExecCtrl = {
   times: ["08h","09h","10h","11h","13h","14h","15h","16h"],
@@ -72,7 +73,12 @@ export const ExecCtrl = {
         ExecCtrl.renderTable();
       },
       onDelete() {
-        ExecCtrl.remove(id);
+        AppState.tasks = AppState.tasks.filter((t) => t.id !== id);
+        App.save();
+        SyncCtrl.deleteTask(id);
+        ExecCtrl.renderTaskList();
+        ExecCtrl.renderTable();
+        Toast.show("Tarefa excluída.", "error");
       },
     });
   },

@@ -74,6 +74,7 @@ export const InboxCtrl = {
     });
     AppState.tasks = AppState.tasks.filter((t) => t.id !== id);
     App.save();
+    SyncCtrl.deleteTask(id);
     ProjCtrl.render();
     this.render();
     Toast.show("Demanda enviada para Projetos!", "success");
