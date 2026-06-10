@@ -54,6 +54,10 @@
   border-color: var(--border-strong);
   background: var(--bg-surface-2);
 }
+.exec-task-item.meeting {
+  background: var(--primary-glow);
+  border-color: var(--primary-border);
+}
 .exec-task-item.selected {
   border-color: var(--primary-border);
   background: var(--primary-glow);
@@ -173,6 +177,10 @@
   max-width: 200px;
   min-width: 0;
   box-sizing: border-box;
+}
+.task-slot.slot-meeting {
+  background: var(--primary-glow);
+  border-color: var(--primary-border);
 }
 .task-slot.dragging {
   opacity: 0.35;

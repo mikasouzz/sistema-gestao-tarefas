@@ -89,6 +89,12 @@
   opacity: 0.45;
   border-left-color: var(--accent);
 }
+.home-today-item.meeting {
+  background: var(--primary-glow);
+  border-left-color: var(--primary);
+  border: 1px solid var(--primary-border);
+  border-left: 3px solid var(--primary);
+}
 .home-today-time {
   font-size: 0.72rem;
   font-weight: 700;

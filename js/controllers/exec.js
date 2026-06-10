@@ -96,9 +96,10 @@ export const ExecCtrl = {
       div.style.cursor = "grab";
       div.setAttribute("draggable", "true");
       div.dataset.listTaskId = t.id;
+      if (t.type === "Reunião") div.classList.add("meeting");
       div.onclick = () => ExecCtrl.openEdit(t.id);
       div.innerHTML = `
-        <div class="quad-dot" style="background:${this.quadColor(t.quadrant)};flex-shrink:0;"></div>
+        <div class="quad-dot" style="background:${t.type === "Reunião" ? "var(--primary)" : this.quadColor(t.quadrant)};flex-shrink:0;"></div>
         <div style="flex:1;min-width:0;">
           <div class="task-title">${t.text}</div>
           <div class="task-meta">${t.type || "—"} · Score ${t.score ?? "—"}/10</div>
@@ -156,8 +157,9 @@ export const ExecCtrl = {
                 <span style="font-size:0.68rem;color:var(--text-secondary);flex-shrink:0;">${t.execStatus || "—"}</span>
               </div>`;
           } else {
+            const isMeeting = t.type === "Reunião";
             tr += `
-              <div class="task-slot${isDone ? " done" : ""}" id="exec-${t.id}" data-exec-id="${t.id}" draggable="true" style="border-left-color:${dot};"
+              <div class="task-slot${isDone ? " done" : ""}${isMeeting ? " slot-meeting" : ""}" id="exec-${t.id}" data-exec-id="${t.id}" draggable="true" style="border-left-color:${isMeeting ? "var(--primary)" : dot};"
                    onclick="if(!event.target.closest('input,button'))ExecCtrl.openEdit('${t.id}')">
                 <div class="slot-title" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${t.text}">${t.text}</div>
                 <span class="slot-date-pick" title="Reagendar" ondragstart="event.stopPropagation()" onclick="event.stopPropagation()">

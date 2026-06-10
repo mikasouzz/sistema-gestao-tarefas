@@ -63,8 +63,9 @@ export const HomeCtrl = {
             text: "var(--text-secondary)",
             border: "1px solid var(--border)",
           };
+          const isMeeting = t.type === "Reunião";
           return `
-            <div class="home-today-item${s === "Concluído" ? " done" : ""}">
+            <div class="home-today-item${s === "Concluído" ? " done" : ""}${isMeeting ? " meeting" : ""}">
               <span class="home-today-time">${t.execTime || "—"}</span>
               <span class="home-today-title">${t.text}</span>
               <span class="badge" style="background:${sc.bg};color:${sc.text};border:${sc.border};text-transform:none;letter-spacing:0;">${s}</span>
