@@ -156,18 +156,17 @@ export const ExecCtrl = {
               </div>`;
           } else {
             tr += `
-              <div class="task-slot${isDone ? " done" : ""}" id="exec-${t.id}" data-exec-id="${t.id}" draggable="true" style="border-left-color:${dot};cursor:pointer;"
-                   onclick="if(!event.target.closest('input,select'))ExecCtrl.openEdit('${t.id}')">
+              <div class="task-slot${isDone ? " done" : ""}" id="exec-${t.id}" data-exec-id="${t.id}" draggable="true" style="border-left-color:${dot};"
+                   onclick="if(!event.target.closest('input,button'))ExecCtrl.openEdit('${t.id}')">
                 <div class="slot-title" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${t.text}">${t.text}</div>
                 <span class="slot-date-pick" title="Reagendar" ondragstart="event.stopPropagation()" onclick="event.stopPropagation()">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                   <input type="date" value="${t.execDate || ""}" ondragstart="event.stopPropagation()" onchange="event.stopPropagation();ExecCtrl.changeDate('${t.id}',this.value)">
                 </span>
-                <select class="status-select" ondragstart="event.stopPropagation()" onclick="event.stopPropagation()" onchange="ExecCtrl.changeStatus('${t.id}',this.value)">
-                  <option value="Pendente" ${t.execStatus === "Pendente" ? "selected" : ""}>⏳</option>
-                  <option value="Em Andamento" ${t.execStatus === "Em Andamento" ? "selected" : ""}>🔥</option>
-                  <option value="Concluído" ${t.execStatus === "Concluído" ? "selected" : ""}>✅</option>
-                </select>
+                <button class="slot-check${isDone ? " checked" : ""}" title="${isDone ? "Desfazer conclusão" : "Marcar como concluído"}"
+                        ondragstart="event.stopPropagation()" onclick="event.stopPropagation();ExecCtrl.toggleDone('${t.id}')">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </button>
               </div>`;
           }
         });
@@ -232,37 +231,35 @@ export const ExecCtrl = {
 
   updateDropdown() { this.renderTaskList(); this.renderTable(); },
 
-  changeStatus(id, newStatus) {
+  toggleDone(id) {
     const task = AppState.tasks.find((t) => t.id === id);
     if (!task) return;
 
-    if (newStatus !== "Concluído") {
-      task.execStatus = newStatus;
-      App.touch(task);
-      App.save();
-      this.renderTaskList();
-      this.renderTable();
-      return;
-    }
-
-    const today = new Date().toISOString().split("T")[0];
-    task.execStatus      = "Concluído";
-    task.execCompletedAt = today;
-    task.done            = true;
-
-    if (task.projectId && task.subtaskId) {
-      const proj = AppState.projects.find((p) => p.id === task.projectId);
-      if (proj && proj.subtasks) {
-        const sub = proj.subtasks.find((s) => s.id === task.subtaskId);
+    if (task.execStatus === "Concluído") {
+      task.execStatus      = "Pendente";
+      task.execCompletedAt = null;
+      task.done            = false;
+      if (task.projectId && task.subtaskId) {
+        const proj = AppState.projects.find((p) => p.id === task.projectId);
+        const sub  = proj?.subtasks?.find((s) => s.id === task.subtaskId);
+        if (sub) { sub.done = false; ProjCtrl.render(); }
+      }
+    } else {
+      task.execStatus      = "Concluído";
+      task.execCompletedAt = new Date().toISOString().split("T")[0];
+      task.done            = true;
+      if (task.projectId && task.subtaskId) {
+        const proj = AppState.projects.find((p) => p.id === task.projectId);
+        const sub  = proj?.subtasks?.find((s) => s.id === task.subtaskId);
         if (sub) { sub.done = true; ProjCtrl.render(); }
       }
+      Toast.show("Tarefa concluída!", "success");
     }
 
     App.touch(task);
     App.save();
     this.renderTaskList();
     this.renderTable();
-    Toast.show("Tarefa concluída!", "success");
   },
 
   remove(id) {
