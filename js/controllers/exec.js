@@ -84,6 +84,7 @@ export const ExecCtrl = {
   },
 
   renderTaskList() {
+    this.renderSuggestions();
     const container = document.getElementById("exec-task-list");
     if (!container) return;
 
@@ -148,6 +149,7 @@ export const ExecCtrl = {
     AppState.tasks.forEach(addToIndex);
     if (isPastWeek) AppArchive.tasks.forEach(addToIndex);
 
+    this.renderLoadMap();
     tbody.innerHTML = "";
     this.times.forEach((time) => {
       let tr = `<tr><td class="time-col">${time}</td>`;
@@ -183,6 +185,115 @@ export const ExecCtrl = {
       });
       tbody.innerHTML += tr + `</tr>`;
     });
+  },
+
+  findBestSlots(count) {
+    const today      = todayISO();
+    const weekDates  = this.getWeekDates().filter((d) => d.iso >= today);
+    if (!weekDates.length) return [];
+
+    // Build mutable occupation map
+    const occupied = {};
+    AppState.tasks.forEach((t) => {
+      if (t.execDate && t.execTime) {
+        const key = `${t.execDate}|${t.execTime}`;
+        occupied[key] = true;
+      }
+    });
+
+    const slots = [];
+    for (let i = 0; i < count; i++) {
+      // Find least loaded day not fully booked
+      const dayCounts = weekDates.map((d) => ({
+        ...d,
+        n: Object.keys(occupied).filter((k) => k.startsWith(d.iso)).length,
+      })).sort((a, b) => a.n - b.n);
+
+      let found = null;
+      for (const day of dayCounts) {
+        const freeTime = this.times.find((t) => !occupied[`${day.iso}|${t}`]);
+        if (freeTime) { found = { date: day.iso, day: day.name, abbr: day.abbr, time: freeTime }; break; }
+      }
+      if (!found) break;
+      occupied[`${found.date}|${found.time}`] = true;
+      slots.push(found);
+    }
+    return slots;
+  },
+
+  renderSuggestions() {
+    const panel = document.getElementById("exec-suggestions");
+    const list  = document.getElementById("exec-suggestions-list");
+    if (!panel || !list) return;
+
+    const unscheduled = AppState.tasks
+      .filter((t) => (t.quadrant === "q1" || t.quadrant === "q2") && !t.done && !t.execDate)
+      .sort((a, b) => {
+        if (a.quadrant !== b.quadrant) return a.quadrant === "q1" ? -1 : 1;
+        return (b.score ?? 0) - (a.score ?? 0);
+      })
+      .slice(0, 3);
+
+    if (unscheduled.length === 0) { panel.style.display = "none"; return; }
+    panel.style.display = "";
+
+    const slots = this.findBestSlots(unscheduled.length);
+
+    list.innerHTML = unscheduled.map((t, i) => {
+      const slot  = slots[i];
+      const color = this.quadColor(t.quadrant);
+      const hint  = slot ? `${slot.abbr} · ${slot.time}` : "Semana cheia";
+      return `
+        <div class="exec-suggestion-card">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;">
+            <div class="quad-dot" style="background:${color};flex-shrink:0;"></div>
+            <span class="exec-suggestion-text" title="${t.text}">${t.text}</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
+            <span style="font-size:0.65rem;color:var(--text-tertiary);">Score ${t.score ?? "—"}/10</span>
+            ${slot ? `<button class="exec-suggest-btn" onclick="ExecCtrl.allocateToSlot('${slot.date}','${slot.day}','${slot.time}','${t.id}')">→ ${hint}</button>`
+                   : `<span style="font-size:0.65rem;color:var(--text-tertiary);">${hint}</span>`}
+          </div>
+        </div>`;
+    }).join("");
+  },
+
+  renderLoadMap() {
+    const el = document.getElementById("exec-load-map");
+    if (!el) return;
+
+    const weekDates = this.getWeekDates();
+    const counts    = weekDates.map((d) => ({
+      abbr:     d.abbr,
+      total:    AppState.tasks.filter((t) => t.execDate === d.iso).length,
+      meetings: AppState.tasks.filter((t) => t.execDate === d.iso && t.type === "Reunião").length,
+      q1:       AppState.tasks.filter((t) => t.execDate === d.iso && t.quadrant === "q1").length,
+    }));
+
+    const max = Math.max(...counts.map((c) => c.total), 1);
+
+    el.innerHTML = counts.map((c) => {
+      const pct   = Math.round((c.total / max) * 100);
+      const color = c.total === 0
+        ? "var(--border)"
+        : c.total >= 6 ? "var(--danger)"
+        : c.total >= 4 ? "var(--warning)"
+        : "var(--accent)";
+
+      const details = c.total > 0
+        ? `${c.total} tarefa${c.total > 1 ? "s" : ""}${c.meetings ? ` · ${c.meetings} reunião` : ""}${c.q1 ? ` · ${c.q1} Q1` : ""}`
+        : "Livre";
+
+      return `
+        <div class="load-col">
+          <span class="load-count" style="color:${color}">${c.total || ""}</span>
+          <div class="load-bar-track">
+            <div class="load-bar-fill" style="height:${pct}%;background:${color};"></div>
+          </div>
+          <span class="load-day">${c.abbr}</span>
+          <span class="load-detail">${details}</span>
+        </div>`;
+    }).join("");
   },
 
   changeDate(id, newDate) {

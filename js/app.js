@@ -14,6 +14,7 @@ import { ExecCtrl }    from "./controllers/exec.js";
 import { ProjCtrl }    from "./controllers/projects.js";
 import { MonCtrl }     from "./controllers/monitor.js";
 import { DashCtrl }    from "./controllers/dashboard.js";
+import { RetroCtrl }   from "./controllers/retro.js";
 
 export const App = {
   navigate(targetId) {
@@ -30,6 +31,7 @@ export const App = {
     Curtain.init();
     this.rerender();
     ExecCtrl.init();
+    RetroCtrl.init();
 
     this.setupDragAndDrop();
   },
@@ -235,6 +237,7 @@ export const App = {
         if (targetId === "mod-home")      HomeCtrl.render();
         if (targetId === "mod-triage")    TriageCtrl.updateDropdown();
         if (targetId === "mod-execution") ExecCtrl.updateDropdown();
+        if (targetId === "mod-retro")     RetroCtrl.render();
         if (targetId === "mod-dashboard") DashCtrl.render();
       });
     });

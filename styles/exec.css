@@ -13,6 +13,51 @@
   flex-direction: column;
   overflow: hidden;
 }
+.exec-suggestions {
+  border-top: 1px solid var(--border);
+  padding: 10px 9px;
+  flex-shrink: 0;
+}
+.exec-suggestions-title {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-tertiary);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.exec-suggestion-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  margin-bottom: 6px;
+}
+.exec-suggestion-text {
+  font-size: 0.77rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+.exec-suggest-btn {
+  font-size: 0.68rem;
+  background: var(--primary-glow);
+  border: 1px solid var(--primary-border);
+  color: var(--primary-light);
+  border-radius: 4px;
+  padding: 3px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition);
+}
+.exec-suggest-btn:hover {
+  background: var(--primary-border);
+  color: var(--text-primary);
+}
 .exec-task-panel.drop-return-active {
   border-color: var(--warning);
   background: color-mix(in srgb, var(--warning) 8%, var(--bg-elevated));
@@ -86,6 +131,55 @@
   gap: 11px;
   overflow: hidden;
   min-width: 0;
+}
+.exec-load-map {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  flex-shrink: 0;
+}
+.load-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.load-count {
+  font-size: 0.72rem;
+  font-weight: 700;
+  min-height: 14px;
+}
+.load-bar-track {
+  width: 100%;
+  height: 48px;
+  background: var(--bg-surface);
+  border-radius: 4px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+.load-bar-fill {
+  width: 100%;
+  border-radius: 4px;
+  transition: height 0.3s ease;
+  min-height: 3px;
+}
+.load-day {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.load-detail {
+  font-size: 0.62rem;
+  color: var(--text-tertiary);
+  text-align: center;
+  line-height: 1.3;
 }
 .week-nav {
   display: flex;
@@ -240,6 +334,200 @@
   text-decoration: line-through;
   color: var(--text-secondary);
 }
+
+/* ─── RETROSPECTIVA ──────────────────────────────── */
+.retro-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 9px 14px;
+  margin-bottom: 20px;
+}
+.retro-nav-label {
+  flex: 1;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.retro-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.retro-kpi {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.retro-kpi-val {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: var(--primary-light);
+  line-height: 1;
+}
+.retro-kpi-label {
+  font-size: 0.71rem;
+  color: var(--text-secondary);
+}
+.retro-main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.retro-dist-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.retro-section {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+.retro-section-title {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.retro-task-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 6px;
+  font-size: 0.8rem;
+}
+.retro-task-day {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--primary-light);
+  min-width: 52px;
+  flex-shrink: 0;
+}
+.retro-task-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.retro-task-type {
+  font-size: 0.66rem;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+.retro-dist-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.retro-dist-label {
+  font-size: 0.75rem;
+  min-width: 110px;
+  color: var(--text-secondary);
+}
+.retro-dist-bar-track {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-surface);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.retro-dist-bar-fill {
+  height: 100%;
+  background: var(--primary-mid);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+.retro-dist-count {
+  font-size: 0.68rem;
+  color: var(--text-tertiary);
+  min-width: 60px;
+  text-align: right;
+}
+.retro-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+.retro-empty-small {
+  font-size: 0.78rem;
+  color: var(--text-tertiary);
+  padding: 8px 0;
+}
+
+/* ─── MONITOR REPORT ─────────────────────────────── */
+.mon-report-kpis {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.mon-report-kpi {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.mon-report-kpi-val {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--primary-light);
+  line-height: 1;
+}
+.mon-report-kpi-label {
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+}
+.mon-report-table-wrap {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.mon-report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+.mon-report-table th {
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-size: 0.69rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.mon-report-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+}
+.mon-report-table tbody tr:last-child td { border-bottom: none; }
+.mon-report-table tbody tr:hover td { background: var(--bg-surface); }
 
 /* ─── KANBAN ──────────────────────────────────────── */
 .kanban-board {

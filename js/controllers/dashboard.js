@@ -182,6 +182,39 @@ export const DashCtrl = {
     });
   },
 
+  exportExcel() {
+    const month   = document.getElementById("dash-month-filter").value;
+    const allTasks = [...AppState.tasks, ...AppArchive.tasks];
+    const done = allTasks.filter((t) =>
+      (t.execStatus === "Concluído" && t.execCompletedAt && t.execCompletedAt.substring(0, 7) === month) ||
+      (t.delegStatus === "done"     && t.delegCompletedAt && t.delegCompletedAt.substring(0, 7) === month),
+    );
+
+    const headers = ["Texto","Tipo","Fonte","Quadrante","Score","Data Conclusão","Responsável","Status"];
+    const quadMap = { q1:"Q1 Urgente", q2:"Q2 Estratégico", q3:"Q3 Delegado", q4:"Q4 Eliminar" };
+    const rows = done.map((t) => [
+      t.text,
+      t.type || "",
+      t.fonte || "",
+      quadMap[t.quadrant] || t.quadrant || "",
+      t.score ?? "",
+      t.execCompletedAt || t.delegCompletedAt || "",
+      t.responsavel || "",
+      t.execStatus === "Concluído" ? "Execução" : "Delegada",
+    ]);
+
+    const escape = (v) => `"${String(v).replace(/"/g, '""')}"`;
+    const csv = [headers, ...rows].map((r) => r.map(escape).join(",")).join("\n");
+    const bom  = "﻿";
+    const blob = new Blob([bom + csv], { type: "text/csv;charset=utf-8;" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href     = url;
+    a.download = `tarefas_concluidas_${month}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
+
   renderHistory() {
     const container = document.getElementById("history-container");
     const items = [];
