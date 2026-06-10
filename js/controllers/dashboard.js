@@ -3,6 +3,7 @@ import { AppState, AppArchive } from "../state.js";
 export const DashCtrl = {
   chartPerf: null, chartMonth: null, chartFonte: null, chartTipo: null,
   chartFonteRate: null, chartQuadrante: null, chartScoreTipo: null, chartDelegados: null,
+  chartProjTasks: null,
 
   execMonth(month) {
     const seen = new Map();
@@ -183,15 +184,17 @@ export const DashCtrl = {
   },
 
   switchTab(tab) {
-    const tabs = ["overview", "deleg", "retro"];
+    const tabs = ["overview", "deleg", "retro", "proj"];
     document.querySelectorAll(".dash-tab").forEach((btn, i) => {
       btn.classList.toggle("active", tabs[i] === tab);
     });
     document.getElementById("dash-panel-overview").style.display = tab === "overview" ? "" : "none";
     document.getElementById("dash-panel-deleg").style.display    = tab === "deleg"    ? "" : "none";
     document.getElementById("dash-panel-retro").style.display    = tab === "retro"    ? "" : "none";
-    if (tab === "deleg")  this.renderDelegReport();
-    if (tab === "retro")  window.RetroCtrl.render();
+    document.getElementById("dash-panel-proj").style.display     = tab === "proj"     ? "" : "none";
+    if (tab === "deleg") this.renderDelegReport();
+    if (tab === "retro") window.RetroCtrl.render();
+    if (tab === "proj")  this.renderProjReport();
   },
 
   renderDelegReport() {
@@ -286,6 +289,102 @@ export const DashCtrl = {
           <tbody>${respRows}</tbody>
         </table>
       </div>` : ""}`;
+  },
+
+  renderProjReport() {
+    const el = document.getElementById("dash-proj-content");
+    if (!el) return;
+
+    const projects = AppState.projects;
+    const allTasks = [...AppState.tasks, ...AppArchive.tasks];
+    const today    = new Date().toISOString().split("T")[0];
+
+    const total = projects.length;
+    const plan  = projects.filter((p) => p.status === "plan").length;
+    const prog  = projects.filter((p) => p.status === "prog").length;
+    const done  = projects.filter((p) => p.status === "done").length;
+    const taxa  = total > 0 ? Math.round((done / total) * 100) : 0;
+
+    const projData = projects.map((p) => {
+      const tasks        = allTasks.filter((t) => t.projectId === p.id);
+      const tasksDone    = tasks.filter((t) => t.done).length;
+      const subtasks     = p.subtasks || [];
+      const subtasksDone = subtasks.filter((s) => s.done).length;
+      return { ...p, tasksTotal: tasks.length, tasksDone, subtasks, subtasksDone };
+    });
+
+    const statusLabel = { plan: "Planejamento", prog: "Em andamento", done: "Concluído" };
+    const statusColor = { plan: "var(--text-secondary)", prog: "var(--warning)", done: "var(--accent)" };
+
+    const tableRows = projData.map((p) => {
+      const termStr = p.term ? new Date(p.term + "T12:00:00").toLocaleDateString("pt-BR") : "—";
+      const overdue = p.term && p.status !== "done" && p.term < today;
+      const subProg = p.subtasks.length ? `${p.subtasksDone}/${p.subtasks.length}` : "—";
+      return `<tr>
+        <td>${p.title}</td>
+        <td style="color:${statusColor[p.status] || ""}">${statusLabel[p.status] || p.status}</td>
+        <td style="text-align:center${overdue ? ";color:var(--danger)" : ""}">${termStr}${overdue ? " ⚠" : ""}</td>
+        <td style="text-align:center">${subProg}</td>
+        <td style="text-align:center">${p.tasksTotal}</td>
+        <td style="text-align:center;color:var(--accent)">${p.tasksDone}</td>
+      </tr>`;
+    }).join("");
+
+    const chartData = projData.filter((p) => p.tasksTotal > 0);
+    const chartHeight = Math.max(100, chartData.length * 36);
+
+    el.innerHTML = `
+      <div class="mon-report-kpis">
+        <div class="mon-report-kpi"><span class="mon-report-kpi-val">${total}</span><span class="mon-report-kpi-label">Total</span></div>
+        <div class="mon-report-kpi"><span class="mon-report-kpi-val" style="color:var(--text-secondary)">${plan}</span><span class="mon-report-kpi-label">Planejamento</span></div>
+        <div class="mon-report-kpi"><span class="mon-report-kpi-val" style="color:var(--warning)">${prog}</span><span class="mon-report-kpi-label">Em andamento</span></div>
+        <div class="mon-report-kpi"><span class="mon-report-kpi-val" style="color:var(--accent)">${done}</span><span class="mon-report-kpi-label">Concluídos</span></div>
+        <div class="mon-report-kpi"><span class="mon-report-kpi-val" style="color:var(--primary-light)">${taxa}%</span><span class="mon-report-kpi-label">Taxa de conclusão</span></div>
+      </div>
+      ${chartData.length ? `
+      <div class="chart-container" style="margin:20px 0;height:${chartHeight}px;">
+        <canvas id="chart-proj-tasks"></canvas>
+      </div>` : ""}
+      ${tableRows ? `
+      <div class="mon-report-table-wrap" style="margin-top:20px;">
+        <table class="mon-report-table">
+          <thead><tr>
+            <th>Projeto</th><th>Status</th><th>Prazo</th><th>Subtarefas</th><th>Tarefas</th><th>Concluídas</th>
+          </tr></thead>
+          <tbody>${tableRows}</tbody>
+        </table>
+      </div>` : `<p style="color:var(--text-secondary);font-size:0.85rem;margin-top:24px;">Nenhum projeto cadastrado.</p>`}`;
+
+    if (chartData.length) {
+      if (this.chartProjTasks) this.chartProjTasks.destroy();
+      const labels   = chartData.map((p) => p.title.length > 22 ? p.title.substring(0, 22) + "…" : p.title);
+      const dataDone = chartData.map((p) => p.tasksDone);
+      const dataPend = chartData.map((p) => p.tasksTotal - p.tasksDone);
+      const tick     = { color: "#7878a0", font: { size: 10 } };
+      this.chartProjTasks = new Chart(document.getElementById("chart-proj-tasks").getContext("2d"), {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            { label: "Concluídas", data: dataDone, backgroundColor: "#10b981", borderRadius: 4 },
+            { label: "Pendentes",  data: dataPend, backgroundColor: "#2a2a45",  borderRadius: 4 },
+          ],
+        },
+        options: {
+          indexAxis: "y",
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { stacked: true, ticks: tick, grid: { color: "rgba(255,255,255,0.05)" } },
+            y: { stacked: true, ticks: tick, grid: { display: false } },
+          },
+          plugins: {
+            legend: { labels: { color: "#eeeeff", font: { size: 11 }, boxWidth: 10 } },
+            title: { display: true, text: "Tarefas por Projeto", color: "#eeeeff", font: { size: 12, weight: "600" }, padding: { bottom: 8 } },
+          },
+        },
+      });
+    }
   },
 
   exportExcel() {

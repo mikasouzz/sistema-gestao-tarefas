@@ -688,6 +688,7 @@
           <button class="dash-tab active" onclick="DashCtrl.switchTab('overview')">Visão Geral</button>
           <button class="dash-tab" onclick="DashCtrl.switchTab('deleg')">Delegações</button>
           <button class="dash-tab" onclick="DashCtrl.switchTab('retro')">Retrospectiva</button>
+          <button class="dash-tab" onclick="DashCtrl.switchTab('proj')">Projetos</button>
         </div>
 
         <!-- Aba: Visão Geral -->
@@ -784,6 +785,11 @@
             </button>
           </div>
           <div id="retro-content"></div>
+        </div>
+
+        <!-- Aba: Projetos -->
+        <div id="dash-panel-proj" style="display:none;">
+          <div id="dash-proj-content"></div>
         </div>
       </section>
     </main>
