@@ -144,17 +144,6 @@ export const RetroCtrl = {
         </div>
       </div>
 
-      <div class="retro-main-grid">
-        <div class="retro-section">
-          <p class="retro-section-title">✓ Concluídas (${doneTasks.length})</p>
-          ${doneTasks.length ? doneTasks.map(taskCard).join("") : `<p class="retro-empty-small">Nenhuma tarefa concluída.</p>`}
-        </div>
-        <div class="retro-section">
-          <p class="retro-section-title">⚠ Não concluídas (${pendingTasks.length})</p>
-          ${pendingTasks.length ? pendingTasks.map(taskCard).join("") : `<p class="retro-empty-small">Tudo foi entregue!</p>`}
-        </div>
-      </div>
-
       <div class="retro-dist-grid">
         <div class="retro-section">
           <p class="retro-section-title">Distribuição por Tipo</p>
@@ -163,6 +152,17 @@ export const RetroCtrl = {
         <div class="retro-section">
           <p class="retro-section-title">Distribuição por Quadrante</p>
           ${quadRows || "<p class='retro-empty-small'>—</p>"}
+        </div>
+      </div>
+
+      <div class="retro-main-grid">
+        <div class="retro-section">
+          <p class="retro-section-title">✓ Concluídas (${doneTasks.length})</p>
+          ${doneTasks.length ? doneTasks.map(taskCard).join("") : `<p class="retro-empty-small">Nenhuma tarefa concluída.</p>`}
+        </div>
+        <div class="retro-section">
+          <p class="retro-section-title">⚠ Não concluídas (${pendingTasks.length})</p>
+          ${pendingTasks.length ? pendingTasks.map(taskCard).join("") : `<p class="retro-empty-small">Tudo foi entregue!</p>`}
         </div>
       </div>`;
   },
