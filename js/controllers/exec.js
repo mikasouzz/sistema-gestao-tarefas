@@ -2,6 +2,7 @@ import { AppState, AppArchive } from "../state.js";
 import { App } from "../app.js";
 import { Toast } from "../toast.js";
 import { ProjCtrl } from "./projects.js";
+import { EditModal } from "../editModal.js";
 
 export const ExecCtrl = {
   times: ["08h","09h","10h","11h","13h","14h","15h","16h"],
@@ -45,6 +46,56 @@ export const ExecCtrl = {
 
   selectTask(id) { this.selectedTaskId = this.selectedTaskId === id ? null : id; this.renderTaskList(); this.renderTable(); },
 
+  editTask(id) {
+    const task = AppState.tasks.find((t) => t.id === id);
+    if (!task) return;
+    const types = ["Reunião", "Estratégia", "Gestão de pessoas", "Crise", "Projeto", "Estudo", "Operacional"];
+    EditModal.open({
+      title: "Editar Tarefa",
+      fields: [
+        { label: "Texto", key: "text", type: "text", value: task.text },
+        { label: "Tipo", key: "type", type: "select", value: task.type, options: types },
+        { label: "Score (0–10)", key: "score", type: "number", value: task.score, min: 0, max: 10 },
+      ],
+      onSave({ text, type, score }) {
+        if (!text) return;
+        task.text  = text;
+        task.type  = type;
+        task.score = Number(score);
+        App.touch(task);
+        App.save();
+        ExecCtrl.renderTaskList();
+        ExecCtrl.renderTable();
+      },
+      onDelete() {
+        AppState.tasks = AppState.tasks.filter((t) => t.id !== id);
+        App.save();
+        ExecCtrl.renderTaskList();
+        ExecCtrl.renderTable();
+        Toast.show("Tarefa excluída.", "primary");
+      },
+    });
+  },
+
+  editSlot(id) {
+    const task = AppState.tasks.find((t) => t.id === id);
+    if (!task) return;
+    EditModal.open({
+      title: "Editar Tarefa",
+      fields: [{ label: "Texto", key: "text", type: "text", value: task.text }],
+      onSave({ text }) {
+        if (!text) return;
+        task.text = text;
+        App.touch(task);
+        App.save();
+        ExecCtrl.renderTable();
+      },
+      onDelete() {
+        ExecCtrl.remove(id);
+      },
+    });
+  },
+
   renderTaskList() {
     const container = document.getElementById("exec-task-list");
     if (!container) return;
@@ -59,15 +110,17 @@ export const ExecCtrl = {
     }
     container.innerHTML = "";
     tasks.forEach((t) => {
-      const sel = this.selectedTaskId === t.id;
       const div = document.createElement("div");
-      div.className = `exec-task-item${sel ? " selected" : ""}`;
-      div.onclick   = () => ExecCtrl.selectTask(t.id);
+      div.className = "exec-task-item";
+      div.style.cursor = "grab";
+      div.setAttribute("draggable", "true");
+      div.dataset.listTaskId = t.id;
+      div.onclick = () => ExecCtrl.editTask(t.id);
       div.innerHTML = `
-        <div class="quad-dot" style="background:${this.quadColor(t.quadrant)};"></div>
-        <div>
+        <div class="quad-dot" style="background:${this.quadColor(t.quadrant)};flex-shrink:0;"></div>
+        <div style="flex:1;min-width:0;">
           <div class="task-title">${t.text}</div>
-          <div class="task-meta">${t.type} · Score ${t.score}/10</div>
+          <div class="task-meta">${t.type || "—"} · Score ${t.score ?? "—"}/10</div>
         </div>`;
       container.appendChild(div);
     });
@@ -107,14 +160,11 @@ export const ExecCtrl = {
     AppState.tasks.forEach(addToIndex);
     if (isPastWeek) AppArchive.tasks.forEach(addToIndex);
 
-    const hasSel = !isPastWeek && !!this.selectedTaskId;
     tbody.innerHTML = "";
     this.times.forEach((time) => {
       let tr = `<tr><td class="time-col">${time}</td>`;
       weekDates.forEach((d) => {
-        const cellCls = hasSel ? "drop-zone allocatable" : "drop-zone";
-        const onclick = isPastWeek ? "" : `onclick="ExecCtrl.allocateToSlot('${d.iso}','${d.name}','${time}')"`;
-        tr += `<td class="${cellCls}" data-date="${d.iso}" data-day="${d.name}" data-time="${time}" ${onclick}>`;
+        tr += `<td class="drop-zone" data-date="${d.iso}" data-day="${d.name}" data-time="${time}">`;
         (taskIndex.get(`${d.iso}|${time}`) || []).forEach((t) => {
           const dot    = this.quadColor(t.quadrant);
           const isDone = t.execStatus === "Concluído";
@@ -126,18 +176,18 @@ export const ExecCtrl = {
               </div>`;
           } else {
             tr += `
-              <div class="task-slot${isDone ? " done" : ""}" id="exec-${t.id}" data-exec-id="${t.id}" draggable="true" style="border-left-color:${dot}">
+              <div class="task-slot${isDone ? " done" : ""}" id="exec-${t.id}" data-exec-id="${t.id}" draggable="true" style="border-left-color:${dot};cursor:pointer;"
+                   onclick="if(!event.target.closest('input,select'))ExecCtrl.editSlot('${t.id}')">
                 <div class="slot-title" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${t.text}">${t.text}</div>
                 <span class="slot-date-pick" title="Reagendar" ondragstart="event.stopPropagation()" onclick="event.stopPropagation()">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                   <input type="date" value="${t.execDate || ""}" ondragstart="event.stopPropagation()" onchange="event.stopPropagation();ExecCtrl.changeDate('${t.id}',this.value)">
                 </span>
-                <select class="status-select" ondragstart="event.stopPropagation()" onchange="ExecCtrl.changeStatus('${t.id}',this.value)">
+                <select class="status-select" ondragstart="event.stopPropagation()" onclick="event.stopPropagation()" onchange="ExecCtrl.changeStatus('${t.id}',this.value)">
                   <option value="Pendente" ${t.execStatus === "Pendente" ? "selected" : ""}>⏳</option>
                   <option value="Em Andamento" ${t.execStatus === "Em Andamento" ? "selected" : ""}>🔥</option>
                   <option value="Concluído" ${t.execStatus === "Concluído" ? "selected" : ""}>✅</option>
                 </select>
-                <span style="cursor:pointer;color:var(--danger);margin-left:4px;" ondragstart="event.stopPropagation()" onclick="event.stopPropagation();ExecCtrl.remove('${t.id}')">✕</span>
               </div>`;
           }
         });
@@ -183,9 +233,10 @@ export const ExecCtrl = {
     Toast.show(`Movido para ${dayName} às ${time}.`, "success");
   },
 
-  allocateToSlot(dateIso, dayName, time) {
-    if (!this.selectedTaskId) return;
-    const task = AppState.tasks.find((t) => t.id === this.selectedTaskId);
+  allocateToSlot(dateIso, dayName, time, taskId) {
+    const id = taskId || this.selectedTaskId;
+    if (!id) return;
+    const task = AppState.tasks.find((t) => t.id === id);
     if (!task) return;
     task.execDate   = dateIso;
     task.execDay    = dayName;

@@ -1,6 +1,7 @@
 import { AppState } from "../state.js";
 import { App } from "../app.js";
-import { Toast, ConfirmModal } from "../toast.js";
+import { Toast } from "../toast.js";
+import { EditModal } from "../editModal.js";
 import { SyncCtrl } from "../sync.js";
 import { ExecCtrl } from "./exec.js";
 
@@ -69,18 +70,33 @@ export const ProjCtrl = {
     this.render();
   },
 
-  delete(id) {
-    ConfirmModal.open(
-      "Excluir Projeto",
-      "Tem certeza que deseja excluir este projeto? Esta ação não pode ser desfeita.",
-      () => {
+  edit(id) {
+    const proj = AppState.projects.find((p) => p.id === id);
+    if (!proj) return;
+    EditModal.open({
+      title: "Editar Projeto",
+      fields: [
+        { label: "Título", key: "title", type: "text", value: proj.title },
+        { label: "Descrição", key: "desc", type: "textarea", value: proj.desc },
+        { label: "Prazo", key: "term", type: "select", value: proj.term, options: ["Curto Prazo", "Longo Prazo"] },
+      ],
+      onSave({ title, desc, term }) {
+        if (!title) return;
+        proj.title = title;
+        proj.desc  = desc;
+        proj.term  = term;
+        App.touch(proj);
+        App.save();
+        ProjCtrl.render();
+      },
+      onDelete() {
         AppState.projects = AppState.projects.filter((p) => p.id !== id);
         App.save();
-        this.render();
+        ProjCtrl.render();
         Toast.show("Projeto excluído.", "primary");
         SyncCtrl.deleteProject(id);
       },
-    );
+    });
   },
 
   render() {
@@ -104,11 +120,9 @@ export const ProjCtrl = {
              </div>`
           : "";
         col.innerHTML += `
-          <div class="kanban-card project-card" draggable="true" id="proj-${p.id}" data-type="project">
-            <div class="flex justify-between align-center">
-              <h4>${p.title}</h4>
-              <span style="cursor:pointer; color:var(--text-secondary); font-size:0.85rem;" onclick="ProjCtrl.delete('${p.id}')">✕</span>
-            </div>
+          <div class="kanban-card project-card" draggable="true" id="proj-${p.id}" data-type="project" style="cursor:pointer;"
+               onclick="if(!event.target.closest('input,select,button'))ProjCtrl.edit('${p.id}')">
+            <h4>${p.title}</h4>
             <p>${p.desc.substring(0, 50)}${p.desc.length > 50 ? "..." : ""}</p>
             <span class="badge" style="background:var(--bg-surface-2); color:var(--text-secondary); border:1px solid var(--border);">${p.term}</span>
             ${subtasksHtml}

@@ -1,6 +1,7 @@
 import { db } from "./db.js";
 import { App } from "./app.js";
 import { SyncCtrl } from "./sync.js";
+import "./editModal.js";
 
 window.onload = async () => {
   App.init();

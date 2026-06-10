@@ -13,6 +13,10 @@
   flex-direction: column;
   overflow: hidden;
 }
+.exec-task-panel.drop-return-active {
+  border-color: var(--warning);
+  background: color-mix(in srgb, var(--warning) 8%, var(--bg-elevated));
+}
 .exec-panel-header {
   padding: 14px 15px;
   border-bottom: 1px solid var(--border);

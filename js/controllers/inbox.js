@@ -3,6 +3,7 @@ import { App } from "../app.js";
 import { SyncCtrl } from "../sync.js";
 import { Toast } from "../toast.js";
 import { ProjCtrl } from "./projects.js";
+import { EditModal } from "../editModal.js";
 
 export const InboxCtrl = {
   addDemand() {
@@ -30,6 +31,29 @@ export const InboxCtrl = {
     App.save();
     this.render();
     SyncCtrl.deleteTask(id);
+  },
+
+  edit(id) {
+    const task = AppState.tasks.find((t) => t.id === id);
+    if (!task) return;
+    EditModal.open({
+      title: "Editar Demanda",
+      fields: [{ label: "Texto", key: "text", type: "text", value: task.text }],
+      onSave({ text }) {
+        if (!text) return;
+        task.text = text;
+        App.touch(task);
+        App.save();
+        InboxCtrl.render();
+      },
+      onDelete() {
+        AppState.tasks = AppState.tasks.filter((t) => t.id !== id);
+        App.save();
+        InboxCtrl.render();
+        SyncCtrl.deleteTask(id);
+        Toast.show("Demanda excluída.", "primary");
+      },
+    });
   },
 
   goToTriage(id) {
@@ -85,13 +109,17 @@ export const InboxCtrl = {
     inbox.forEach((item) => {
       const div     = document.createElement("div");
       div.className = "inbox-item";
+      div.style.cursor = "pointer";
+      div.onclick = (e) => {
+        if (e.target.closest("button")) return;
+        InboxCtrl.edit(item.id);
+      };
       div.innerHTML = `
         <span style="font-size:0.875rem; flex:1;">${item.text}</span>
         <div class="flex gap-2">
           <button class="btn btn-secondary inbox-action-btn" onclick="InboxCtrl.goToTriage('${item.id}')">Triar</button>
           <button class="btn btn-secondary inbox-action-btn" onclick="InboxCtrl.goToProject('${item.id}')">Projeto</button>
           <button class="btn btn-secondary inbox-action-btn" onclick="InboxCtrl.goToMonitor('${item.id}')">Monitoramento</button>
-          <button class="btn btn-danger inbox-action-btn" onclick="InboxCtrl.delete('${item.id}')">✕</button>
         </div>`;
       container.appendChild(div);
     });

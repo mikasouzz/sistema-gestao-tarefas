@@ -256,6 +256,12 @@ export const App = {
         e.dataTransfer.setData("type", e.target.dataset.type);
         return;
       }
+      const listItem = e.target.closest("[data-list-task-id]");
+      if (listItem) {
+        e.dataTransfer.setData("list-task-id", listItem.dataset.listTaskId);
+        e.dataTransfer.effectAllowed = "copy";
+        return;
+      }
       const slot = e.target.closest(".task-slot[data-exec-id]");
       if (slot) {
         e.dataTransfer.setData("exec-task-id", slot.dataset.execId);
@@ -277,11 +283,36 @@ export const App = {
       schedBody.addEventListener("drop", (e) => {
         const td = e.target.closest("td[data-date]");
         if (!td) return;
+        e.preventDefault();
+        td.classList.remove("drag-over");
+        const listId = e.dataTransfer.getData("list-task-id");
+        if (listId) {
+          ExecCtrl.allocateToSlot(td.dataset.date, td.dataset.day, td.dataset.time, listId);
+          return;
+        }
+        const execId = e.dataTransfer.getData("exec-task-id");
+        if (execId) ExecCtrl.moveToSlot(execId, td.dataset.date, td.dataset.day, td.dataset.time);
+      });
+    }
+
+    const taskPanel = document.querySelector(".exec-task-panel");
+    if (taskPanel) {
+      document.addEventListener("dragstart", () => {}, false);
+      taskPanel.addEventListener("dragover", (e) => {
+        if (e.dataTransfer.types.includes("exec-task-id")) e.preventDefault();
+      });
+      taskPanel.addEventListener("dragenter", (e) => {
+        if (e.dataTransfer.types.includes("exec-task-id")) taskPanel.classList.add("drop-return-active");
+      });
+      taskPanel.addEventListener("dragleave", (e) => {
+        if (!taskPanel.contains(e.relatedTarget)) taskPanel.classList.remove("drop-return-active");
+      });
+      taskPanel.addEventListener("drop", (e) => {
+        taskPanel.classList.remove("drop-return-active");
         const execId = e.dataTransfer.getData("exec-task-id");
         if (!execId) return;
         e.preventDefault();
-        td.classList.remove("drag-over");
-        ExecCtrl.moveToSlot(execId, td.dataset.date, td.dataset.day, td.dataset.time);
+        ExecCtrl.remove(execId);
       });
     }
 
