@@ -46,48 +46,28 @@ export const ExecCtrl = {
 
   selectTask(id) { this.selectedTaskId = this.selectedTaskId === id ? null : id; this.renderTaskList(); this.renderTable(); },
 
-  editTask(id) {
+  openEdit(id) {
     const task = AppState.tasks.find((t) => t.id === id);
     if (!task) return;
-    const types = ["Reunião", "Estratégia", "Gestão de pessoas", "Crise", "Projeto", "Estudo", "Operacional"];
+    const types  = ["Reunião", "Estratégia", "Gestão de pessoas", "Crise", "Projeto", "Estudo", "Operacional"];
+    const fontes = ["Diretoria", "Equipe", "Intersetorial", "Externa", "Própria"];
     EditModal.open({
       title: "Editar Tarefa",
       fields: [
-        { label: "Texto", key: "text", type: "text", value: task.text },
-        { label: "Tipo", key: "type", type: "select", value: task.type, options: types },
+        { label: "Texto",       key: "text",  type: "text",   value: task.text },
+        { label: "Tipo",        key: "type",  type: "select", value: task.type,  options: types },
+        { label: "Fonte",       key: "fonte", type: "select", value: task.fonte, options: fontes },
         { label: "Score (0–10)", key: "score", type: "number", value: task.score, min: 0, max: 10 },
       ],
-      onSave({ text, type, score }) {
+      onSave({ text, type, fonte, score }) {
         if (!text) return;
         task.text  = text;
         task.type  = type;
+        task.fonte = fonte;
         task.score = Number(score);
         App.touch(task);
         App.save();
         ExecCtrl.renderTaskList();
-        ExecCtrl.renderTable();
-      },
-      onDelete() {
-        AppState.tasks = AppState.tasks.filter((t) => t.id !== id);
-        App.save();
-        ExecCtrl.renderTaskList();
-        ExecCtrl.renderTable();
-        Toast.show("Tarefa excluída.", "primary");
-      },
-    });
-  },
-
-  editSlot(id) {
-    const task = AppState.tasks.find((t) => t.id === id);
-    if (!task) return;
-    EditModal.open({
-      title: "Editar Tarefa",
-      fields: [{ label: "Texto", key: "text", type: "text", value: task.text }],
-      onSave({ text }) {
-        if (!text) return;
-        task.text = text;
-        App.touch(task);
-        App.save();
         ExecCtrl.renderTable();
       },
       onDelete() {
@@ -115,7 +95,7 @@ export const ExecCtrl = {
       div.style.cursor = "grab";
       div.setAttribute("draggable", "true");
       div.dataset.listTaskId = t.id;
-      div.onclick = () => ExecCtrl.editTask(t.id);
+      div.onclick = () => ExecCtrl.openEdit(t.id);
       div.innerHTML = `
         <div class="quad-dot" style="background:${this.quadColor(t.quadrant)};flex-shrink:0;"></div>
         <div style="flex:1;min-width:0;">
@@ -177,7 +157,7 @@ export const ExecCtrl = {
           } else {
             tr += `
               <div class="task-slot${isDone ? " done" : ""}" id="exec-${t.id}" data-exec-id="${t.id}" draggable="true" style="border-left-color:${dot};cursor:pointer;"
-                   onclick="if(!event.target.closest('input,select'))ExecCtrl.editSlot('${t.id}')">
+                   onclick="if(!event.target.closest('input,select'))ExecCtrl.openEdit('${t.id}')">
                 <div class="slot-title" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${t.text}">${t.text}</div>
                 <span class="slot-date-pick" title="Reagendar" ondragstart="event.stopPropagation()" onclick="event.stopPropagation()">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
