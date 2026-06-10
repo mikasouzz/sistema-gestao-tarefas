@@ -52,6 +52,29 @@
 .charts-grid-3 {
   grid-template-columns: 1fr 1fr 1fr;
 }
+.dash-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+.dash-tab {
+  padding: 8px 18px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  margin-bottom: -1px;
+}
+.dash-tab:hover { color: var(--text-primary); }
+.dash-tab.active {
+  color: var(--primary-light);
+  border-bottom-color: var(--primary-light);
+}
 .dash-section-label {
   font-size: 0.7rem;
   color: var(--text-secondary);

@@ -153,12 +153,7 @@
           </svg>
           Monitoramento
         </div>
-        <div class="nav-item" data-target="mod-retro">
-          <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/>
-          </svg>
-          Retrospectiva
-        </div>
+
         <div class="nav-item" data-target="mod-dashboard">
           <svg
             class="nav-icon"
@@ -639,18 +634,10 @@
 
       <!-- Módulo 5: Monitoramento -->
       <section id="mod-monitor" class="module-container">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
-          <p style="color:var(--text-secondary);font-size:0.865rem;">
-            Acompanhamento de demandas delegadas pela triagem (Q3).
-          </p>
-          <button class="btn" onclick="MonCtrl.toggleReport()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-            Relatório
-          </button>
-        </div>
-        <div id="mon-report" style="display:none;margin-bottom:22px;">
-          <div id="mon-report-content"></div>
-        </div>
+        <p style="color:var(--text-secondary);font-size:0.865rem;margin-bottom:22px;">
+          Acompanhamento de demandas delegadas pela triagem (Q3).
+        </p>
+
         <div class="kanban-board">
           <div class="kanban-col">
             <div
@@ -694,97 +681,109 @@
         </div>
       </section>
 
-      <!-- Módulo 6: Retrospectiva Semanal -->
-      <section id="mod-retro" class="module-container">
-        <div class="retro-nav">
-          <button class="btn" onclick="RetroCtrl.prevWeek()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-            Anterior
-          </button>
-          <span class="retro-nav-label" id="retro-week-label">—</span>
-          <button class="btn" onclick="RetroCtrl.nextWeek()">
-            Próxima
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
-          <div style="width:1px;background:var(--border);align-self:stretch;margin:0 4px;"></div>
-          <button class="btn" onclick="RetroCtrl.exportPDF()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            Exportar PDF
-          </button>
-        </div>
-        <div id="retro-content"></div>
-      </section>
 
       <!-- Módulo 7: Dashboard Analítico -->
       <section id="mod-dashboard" class="module-container">
-        <div class="flex justify-between mb-4 align-center">
-          <input
-            type="month"
-            id="dash-month-filter"
-            onchange="DashCtrl.render()"
-            style="max-width: 175px"
-          />
-          <button class="btn" onclick="DashCtrl.exportExcel()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-              <line x1="16" y1="13" x2="8" y2="13"></line>
-              <line x1="16" y1="17" x2="8" y2="17"></line>
-            </svg>
-            Exportar Excel
-          </button>
-        </div>
-        <div class="kpi-grid">
-          <div class="kpi-card">
-            <div class="kpi-label">Tarefas Concluídas / Total</div>
-            <div class="kpi-value" id="kpi-tasks">0 / 0</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Projetos Ativos / Concluídos</div>
-            <div class="kpi-value" id="kpi-projects">0 / 0</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Caixa de Entrada (Pendente)</div>
-            <div class="kpi-value" id="kpi-inbox">0</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Demandas Delegadas Ativas</div>
-            <div class="kpi-value" id="kpi-delegated">0</div>
-          </div>
-        </div>
-        <div class="charts-grid">
-          <div class="chart-container">
-            <canvas id="chart-performance"></canvas>
-          </div>
-          <div class="chart-container">
-            <canvas id="chart-monthly"></canvas>
-          </div>
-        </div>
-        <div class="dash-section-label">Origem e Volume</div>
-        <div class="charts-grid charts-grid-3">
-          <div class="chart-container"><canvas id="chart-fonte"></canvas></div>
-          <div class="chart-container"><canvas id="chart-tipo"></canvas></div>
-          <div class="chart-container"><canvas id="chart-fonte-rate"></canvas></div>
+        <div class="dash-tabs">
+          <button class="dash-tab active" onclick="DashCtrl.switchTab('overview')">Visão Geral</button>
+          <button class="dash-tab" onclick="DashCtrl.switchTab('deleg')">Delegações</button>
+          <button class="dash-tab" onclick="DashCtrl.switchTab('retro')">Retrospectiva</button>
         </div>
 
-        <div class="dash-section-label">Priorização</div>
-        <div class="charts-grid">
-          <div class="chart-container"><canvas id="chart-quadrante"></canvas></div>
-          <div class="chart-container"><canvas id="chart-score-tipo"></canvas></div>
-        </div>
-
-        <div class="dash-section-label">Delegação</div>
-        <div class="charts-grid" style="margin-bottom:20px;">
-          <div class="chart-container" id="chart-delegados-wrap">
-            <canvas id="chart-delegados"></canvas>
-            <p id="chart-delegados-empty" style="display:none;color:var(--text-secondary);font-size:0.78rem;padding:20px 0;text-align:center;">Nenhuma delegação com responsável definido no período.</p>
+        <!-- Aba: Visão Geral -->
+        <div id="dash-panel-overview">
+          <div class="flex justify-between mb-4 align-center">
+            <input
+              type="month"
+              id="dash-month-filter"
+              onchange="DashCtrl.render()"
+              style="max-width: 175px"
+            />
+            <button class="btn" onclick="DashCtrl.exportExcel()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+              </svg>
+              Exportar Excel
+            </button>
           </div>
-          <div></div>
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-label">Tarefas Concluídas / Total</div>
+              <div class="kpi-value" id="kpi-tasks">0 / 0</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Projetos Ativos / Concluídos</div>
+              <div class="kpi-value" id="kpi-projects">0 / 0</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Caixa de Entrada (Pendente)</div>
+              <div class="kpi-value" id="kpi-inbox">0</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Demandas Delegadas Ativas</div>
+              <div class="kpi-value" id="kpi-delegated">0</div>
+            </div>
+          </div>
+          <div class="charts-grid">
+            <div class="chart-container">
+              <canvas id="chart-performance"></canvas>
+            </div>
+            <div class="chart-container">
+              <canvas id="chart-monthly"></canvas>
+            </div>
+          </div>
+          <div class="dash-section-label">Origem e Volume</div>
+          <div class="charts-grid charts-grid-3">
+            <div class="chart-container"><canvas id="chart-fonte"></canvas></div>
+            <div class="chart-container"><canvas id="chart-tipo"></canvas></div>
+            <div class="chart-container"><canvas id="chart-fonte-rate"></canvas></div>
+          </div>
+          <div class="dash-section-label">Priorização</div>
+          <div class="charts-grid">
+            <div class="chart-container"><canvas id="chart-quadrante"></canvas></div>
+            <div class="chart-container"><canvas id="chart-score-tipo"></canvas></div>
+          </div>
+          <div class="dash-section-label">Delegação</div>
+          <div class="charts-grid" style="margin-bottom:20px;">
+            <div class="chart-container" id="chart-delegados-wrap">
+              <canvas id="chart-delegados"></canvas>
+              <p id="chart-delegados-empty" style="display:none;color:var(--text-secondary);font-size:0.78rem;padding:20px 0;text-align:center;">Nenhuma delegação com responsável definido no período.</p>
+            </div>
+            <div></div>
+          </div>
+          <div class="history-list">
+            <h3 class="mb-4">Histórico de Conclusões</h3>
+            <div id="history-container"></div>
+          </div>
         </div>
 
-        <div class="history-list">
-          <h3 class="mb-4">Histórico de Conclusões</h3>
-          <div id="history-container"></div>
+        <!-- Aba: Delegações -->
+        <div id="dash-panel-deleg" style="display:none;">
+          <div id="dash-deleg-content"></div>
+        </div>
+
+        <!-- Aba: Retrospectiva -->
+        <div id="dash-panel-retro" style="display:none;">
+          <div class="retro-nav">
+            <button class="btn" onclick="RetroCtrl.prevWeek()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              Anterior
+            </button>
+            <span class="retro-nav-label" id="retro-week-label">—</span>
+            <button class="btn" onclick="RetroCtrl.nextWeek()">
+              Próxima
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            <div style="width:1px;background:var(--border);align-self:stretch;margin:0 4px;"></div>
+            <button class="btn" onclick="RetroCtrl.exportPDF()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              Exportar PDF
+            </button>
+          </div>
+          <div id="retro-content"></div>
         </div>
       </section>
     </main>

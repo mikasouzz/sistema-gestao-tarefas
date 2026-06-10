@@ -270,10 +270,7 @@ export const ExecCtrl = {
       q1:       AppState.tasks.filter((t) => t.execDate === d.iso && t.quadrant === "q1").length,
     }));
 
-    const max = Math.max(...counts.map((c) => c.total), 1);
-
     el.innerHTML = counts.map((c) => {
-      const pct   = Math.round((c.total / max) * 100);
       const color = c.total === 0
         ? "var(--border)"
         : c.total >= 6 ? "var(--danger)"
@@ -285,13 +282,9 @@ export const ExecCtrl = {
         : "Livre";
 
       return `
-        <div class="load-col">
-          <span class="load-count" style="color:${color}">${c.total || ""}</span>
-          <div class="load-bar-track">
-            <div class="load-bar-fill" style="height:${pct}%;background:${color};"></div>
-          </div>
+        <div class="load-col" title="${details}">
           <span class="load-day">${c.abbr}</span>
-          <span class="load-detail">${details}</span>
+          <div class="load-dot" style="border-color:${color};">${c.total || ""}</div>
         </div>`;
     }).join("");
   },

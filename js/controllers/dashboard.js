@@ -182,6 +182,112 @@ export const DashCtrl = {
     });
   },
 
+  switchTab(tab) {
+    const tabs = ["overview", "deleg", "retro"];
+    document.querySelectorAll(".dash-tab").forEach((btn, i) => {
+      btn.classList.toggle("active", tabs[i] === tab);
+    });
+    document.getElementById("dash-panel-overview").style.display = tab === "overview" ? "" : "none";
+    document.getElementById("dash-panel-deleg").style.display    = tab === "deleg"    ? "" : "none";
+    document.getElementById("dash-panel-retro").style.display    = tab === "retro"    ? "" : "none";
+    if (tab === "deleg")  this.renderDelegReport();
+    if (tab === "retro")  window.RetroCtrl.render();
+  },
+
+  renderDelegReport() {
+    const el = document.getElementById("dash-deleg-content");
+    if (!el) return;
+
+    const allTasks = [...AppState.tasks, ...AppArchive.tasks];
+    const delegated = allTasks.filter((t) => t.category === "delegar" || t.quadrant === "q3");
+
+    const total   = delegated.length;
+    const active  = delegated.filter((t) => t.delegStatus !== "done").length;
+    const done    = delegated.filter((t) => t.delegStatus === "done").length;
+    const taxaPct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+    const resolvedTimes = delegated
+      .filter((t) => t.delegStatus === "done" && t.delegCompletedAt && t.createdAt)
+      .map((t) => {
+        const diff = new Date(t.delegCompletedAt) - new Date(t.createdAt.split("T")[0]);
+        return Math.max(0, Math.round(diff / 86400000));
+      });
+    const avgDays = resolvedTimes.length
+      ? Math.round(resolvedTimes.reduce((a, b) => a + b, 0) / resolvedTimes.length)
+      : null;
+
+    const byResp = {};
+    delegated.forEach((t) => {
+      const name = t.responsavel || "Sem responsável";
+      if (!byResp[name]) byResp[name] = { total: 0, active: 0, done: 0, days: [] };
+      byResp[name].total++;
+      if (t.delegStatus === "done") {
+        byResp[name].done++;
+        if (t.delegCompletedAt && t.createdAt) {
+          const diff = new Date(t.delegCompletedAt) - new Date(t.createdAt.split("T")[0]);
+          byResp[name].days.push(Math.max(0, Math.round(diff / 86400000)));
+        }
+      } else {
+        byResp[name].active++;
+      }
+    });
+
+    const respRows = Object.entries(byResp)
+      .sort((a, b) => b[1].total - a[1].total)
+      .map(([name, r]) => {
+        const avg  = r.days.length ? Math.round(r.days.reduce((a, b) => a + b, 0) / r.days.length) + "d" : "—";
+        const taxa = Math.round((r.done / r.total) * 100);
+        return `<tr>
+          <td>${name}</td>
+          <td style="text-align:center">${r.total}</td>
+          <td style="text-align:center;color:var(--warning)">${r.active}</td>
+          <td style="text-align:center;color:var(--accent)">${r.done}</td>
+          <td style="text-align:center">${taxa}%</td>
+          <td style="text-align:center;color:var(--text-secondary)">${avg}</td>
+        </tr>`;
+      }).join("");
+
+    el.innerHTML = `
+      <div class="mon-report-kpis">
+        <div class="mon-report-kpi">
+          <span class="mon-report-kpi-val">${total}</span>
+          <span class="mon-report-kpi-label">Total delegadas</span>
+        </div>
+        <div class="mon-report-kpi">
+          <span class="mon-report-kpi-val" style="color:var(--warning)">${active}</span>
+          <span class="mon-report-kpi-label">Em aberto</span>
+        </div>
+        <div class="mon-report-kpi">
+          <span class="mon-report-kpi-val" style="color:var(--accent)">${done}</span>
+          <span class="mon-report-kpi-label">Concluídas</span>
+        </div>
+        <div class="mon-report-kpi">
+          <span class="mon-report-kpi-val" style="color:var(--primary-light)">${taxaPct}%</span>
+          <span class="mon-report-kpi-label">Taxa de conclusão</span>
+        </div>
+        <div class="mon-report-kpi">
+          <span class="mon-report-kpi-val" style="color:var(--text-secondary)">${avgDays != null ? avgDays + "d" : "—"}</span>
+          <span class="mon-report-kpi-label">Tempo médio (dias)</span>
+        </div>
+      </div>
+      ${respRows ? `
+      <div class="mon-report-table-wrap" style="margin-top:20px;">
+        <table class="mon-report-table">
+          <thead>
+            <tr>
+              <th>Responsável</th>
+              <th>Total</th>
+              <th>Em aberto</th>
+              <th>Concluídas</th>
+              <th>Taxa</th>
+              <th>Tempo médio</th>
+            </tr>
+          </thead>
+          <tbody>${respRows}</tbody>
+        </table>
+      </div>` : ""}`;
+  },
+
   exportExcel() {
     const month   = document.getElementById("dash-month-filter").value;
     const allTasks = [...AppState.tasks, ...AppArchive.tasks];
