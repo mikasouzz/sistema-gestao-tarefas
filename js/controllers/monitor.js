@@ -2,6 +2,7 @@ import { AppState } from "../state.js";
 import { App } from "../app.js";
 import { Toast } from "../toast.js";
 import { EditModal } from "../editModal.js";
+import { todayISO } from "../date.js";
 
 export const MonCtrl = {
   updateStatus(id, newStatus) {
@@ -9,7 +10,7 @@ export const MonCtrl = {
     if (!task) return;
     if (newStatus === "done") {
       task.delegStatus = "done";
-      task.delegCompletedAt = new Date().toISOString().split("T")[0];
+      task.delegCompletedAt = todayISO();
       task.done = true;
       Toast.show("Demanda delegada concluída!", "success");
     } else {

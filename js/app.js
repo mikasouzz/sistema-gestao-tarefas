@@ -3,6 +3,7 @@ import {
   setAppState, setAppArchive,
 } from "./state.js";
 import { db } from "./db.js";
+import { localDateISO, todayISO } from "./date.js";
 import { SyncCtrl } from "./sync.js";
 import { Toast, ConfirmModal } from "./toast.js";
 import { Curtain } from "./curtain.js";
@@ -78,7 +79,7 @@ export const App = {
   archiveOldTasks() {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - 30);
-    const cutoffStr = cutoff.toISOString().split("T")[0];
+    const cutoffStr = localDateISO(cutoff);
 
     const toArchive = AppState.tasks.filter((t) => {
       if (!t.done) return false;
@@ -99,7 +100,7 @@ export const App = {
     if (AppState.tasks !== undefined) return;
 
     const tasks = [];
-    const today = new Date().toISOString().split("T")[0];
+    const today = todayISO();
 
     (AppState.inbox || []).forEach((item) => {
       tasks.push({ id: item.id, text: item.text, createdAt: item.createdAt || new Date().toISOString(), done: false });
@@ -159,7 +160,7 @@ export const App = {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload, null, 2));
     const a = document.createElement("a");
     a.setAttribute("href", dataStr);
-    a.setAttribute("download", `backup_lideranca_${new Date().toISOString().split("T")[0]}.json`);
+    a.setAttribute("download", `backup_lideranca_${todayISO()}.json`);
     document.body.appendChild(a);
     a.click();
     a.remove();

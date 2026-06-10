@@ -3,6 +3,7 @@ import { App } from "../app.js";
 import { Toast } from "../toast.js";
 import { EditModal } from "../editModal.js";
 import { SyncCtrl } from "../sync.js";
+import { todayISO } from "../date.js";
 import { ExecCtrl } from "./exec.js";
 
 export const ProjCtrl = {
@@ -29,7 +30,7 @@ export const ProjCtrl = {
     if (p) {
       p.status = newStatus;
       if (newStatus === "done") {
-        p.completedAt = new Date().toISOString().split("T")[0];
+        p.completedAt = todayISO();
         Toast.show("Projeto marcado como concluído!", "success");
       }
       App.touch(p);
@@ -51,7 +52,7 @@ export const ProjCtrl = {
     );
     if (task) {
       if (done) {
-        const today         = new Date().toISOString().split("T")[0];
+        const today         = todayISO();
         task.execStatus      = "Concluído";
         task.execCompletedAt = today;
         task.done            = true;

@@ -1,4 +1,5 @@
 import { AppState } from "../state.js";
+import { todayISO } from "../date.js";
 
 export const HomeCtrl = {
   render() {
@@ -12,7 +13,7 @@ export const HomeCtrl = {
     document.getElementById("home-date").textContent =
       dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
 
-    const todayISO = now.toISOString().split("T")[0];
+    const today = todayISO();
 
     document.getElementById("hkpi-inbox").textContent =
       AppState.tasks.filter((t) => !t.quadrant).length;
@@ -22,7 +23,7 @@ export const HomeCtrl = {
         (t) => (t.quadrant === "q1" || t.quadrant === "q2") && !t.execDate && !t.done,
       ).length;
 
-    const todayTasks = AppState.tasks.filter((t) => t.execDate === todayISO);
+    const todayTasks = AppState.tasks.filter((t) => t.execDate === today);
     document.getElementById("hkpi-today").textContent = todayTasks.length;
 
     document.getElementById("hkpi-projects").textContent =

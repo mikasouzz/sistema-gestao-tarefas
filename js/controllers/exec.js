@@ -3,6 +3,7 @@ import { App } from "../app.js";
 import { Toast } from "../toast.js";
 import { ProjCtrl } from "./projects.js";
 import { EditModal } from "../editModal.js";
+import { localDateISO, todayISO } from "../date.js";
 
 export const ExecCtrl = {
   times: ["08h","09h","10h","11h","13h","14h","15h","16h"],
@@ -26,7 +27,7 @@ export const ExecCtrl = {
     return names.map((name, i) => {
       const d = new Date(this.currentWeekStart);
       d.setDate(d.getDate() + i);
-      return { date: d, iso: d.toISOString().split("T")[0], name, abbr: abbr[i] };
+      return { date: d, iso: localDateISO(d), name, abbr: abbr[i] };
     });
   },
 
@@ -246,7 +247,7 @@ export const ExecCtrl = {
       }
     } else {
       task.execStatus      = "Concluído";
-      task.execCompletedAt = new Date().toISOString().split("T")[0];
+      task.execCompletedAt = todayISO();
       task.done            = true;
       if (task.projectId && task.subtaskId) {
         const proj = AppState.projects.find((p) => p.id === task.projectId);
