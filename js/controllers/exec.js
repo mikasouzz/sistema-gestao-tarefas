@@ -10,6 +10,7 @@ export const ExecCtrl = {
   times: ["08h","09h","10h","11h","13h","14h","15h","16h"],
   selectedTaskId: null,
   currentWeekStart: null,
+  copyTaskId: null,
   months: ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"],
 
   init() { this.currentWeekStart = this.getWeekStart(new Date()); },
@@ -56,22 +57,37 @@ export const ExecCtrl = {
     EditModal.open({
       title: "Editar Tarefa",
       fields: [
-        { label: "Texto",       key: "text",  type: "text",   value: task.text },
-        { label: "Tipo",        key: "type",  type: "select", value: task.type,  options: types },
-        { label: "Fonte",       key: "fonte", type: "select", value: task.fonte, options: fontes },
-        { label: "Score (0–10)", key: "score", type: "number", value: task.score, min: 0, max: 10 },
+        { label: "Texto",            key: "text",     type: "text",   value: task.text },
+        { label: "Data de execução", key: "execDate", type: "date",   value: task.execDate || "" },
+        { label: "Horário",          key: "execTime", type: "select", value: task.execTime, options: this.times },
+        { label: "Tipo",             key: "type",     type: "select", value: task.type,     options: types },
+        { label: "Fonte",            key: "fonte",    type: "select", value: task.fonte,    options: fontes },
+        { label: "Score (0–10)",     key: "score",    type: "number", value: task.score, min: 0, max: 10 },
       ],
-      onSave({ text, type, fonte, score }) {
+      onSave({ text, execDate, execTime, type, fonte, score }) {
         if (!text) return;
         task.text  = text;
         task.type  = type;
         task.fonte = fonte;
         task.score = Number(score);
+        if (execDate) {
+          const d = new Date(execDate + "T12:00:00");
+          const days = ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
+          task.execDate = execDate;
+          task.execDay  = days[d.getDay()];
+        }
+        if (execTime) task.execTime = execTime;
         App.touch(task);
         App.save();
         ExecCtrl.renderTaskList();
         ExecCtrl.renderTable();
       },
+      extraButtons: [
+        {
+          label: "Copiar para...",
+          onClick() { ExecCtrl.startCopy(id, { stopPropagation() {} }); },
+        },
+      ],
       onDelete() {
         AppState.tasks = AppState.tasks.filter((t) => t.id !== id);
         App.save();
@@ -136,6 +152,16 @@ export const ExecCtrl = {
     const isPastWeek     = this.currentWeekStart < todayWeekStart;
     const notice = document.getElementById("exec-archive-notice");
     if (notice) notice.style.display = isPastWeek ? "flex" : "none";
+    const copyBanner = document.getElementById("exec-copy-banner");
+    if (copyBanner) {
+      const active = !!this.copyTaskId && !isPastWeek;
+      copyBanner.style.display = active ? "flex" : "none";
+      if (active) {
+        const src = AppState.tasks.find((t) => t.id === this.copyTaskId);
+        const bannerText = document.getElementById("exec-copy-banner-text");
+        if (bannerText && src) bannerText.textContent = `Copiar "${src.text}" — clique em um horário`;
+      }
+    }
 
     const weekStart = weekDates[0].iso;
     const weekEnd   = weekDates[4].iso;
@@ -153,11 +179,14 @@ export const ExecCtrl = {
     tbody.innerHTML = "";
     this.times.forEach((time) => {
       let tr = `<tr><td class="time-col">${time}</td>`;
+      const isCopyMode = !!this.copyTaskId && !isPastWeek;
       weekDates.forEach((d) => {
-        tr += `<td class="drop-zone" data-date="${d.iso}" data-day="${d.name}" data-time="${time}">`;
+        const copyClick = isCopyMode ? `onclick="ExecCtrl.copyToSlot('${d.iso}','${d.name}','${time}')"` : "";
+        tr += `<td class="drop-zone${isCopyMode ? " copy-target" : ""}" data-date="${d.iso}" data-day="${d.name}" data-time="${time}" ${copyClick}>`;
         (taskIndex.get(`${d.iso}|${time}`) || []).forEach((t) => {
           const dot    = this.quadColor(t.quadrant);
           const isDone = t.execStatus === "Concluído";
+          const isSrc  = t.id === this.copyTaskId;
           if (isPastWeek) {
             tr += `
               <div class="task-slot${isDone ? " done" : ""}" style="border-left-color:${dot};cursor:default;">
@@ -166,16 +195,15 @@ export const ExecCtrl = {
               </div>`;
           } else {
             const isMeeting = t.type === "Reunião";
+            const slotClick = isCopyMode
+              ? `onclick="event.stopPropagation();ExecCtrl.copyToSlot('${d.iso}','${d.name}','${time}')"`
+              : `onclick="if(!event.target.closest('button'))ExecCtrl.openEdit('${t.id}')"`;
             tr += `
-              <div class="task-slot${isDone ? " done" : ""}${isMeeting ? " slot-meeting" : ""}" id="exec-${t.id}" data-exec-id="${t.id}" draggable="true" style="border-left-color:${isMeeting ? "var(--primary)" : dot};"
-                   onclick="if(!event.target.closest('input,button'))ExecCtrl.openEdit('${t.id}')">
+              <div class="task-slot${isDone ? " done" : ""}${isMeeting ? " slot-meeting" : ""}${isSrc ? " copy-source" : ""}" id="exec-${t.id}" data-exec-id="${t.id}" draggable="${isCopyMode ? "false" : "true"}" style="border-left-color:${isMeeting ? "var(--primary)" : dot};"
+                   ${slotClick}>
                 <div class="slot-title" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${t.text}">${t.text}</div>
-                <span class="slot-date-pick" title="Reagendar" ondragstart="event.stopPropagation()" onclick="event.stopPropagation()">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                  <input type="date" value="${t.execDate || ""}" ondragstart="event.stopPropagation()" onchange="event.stopPropagation();ExecCtrl.changeDate('${t.id}',this.value)">
-                </span>
                 <button class="slot-check${isDone ? " checked" : ""}" title="${isDone ? "Desfazer conclusão" : "Marcar como concluído"}"
-                        ondragstart="event.stopPropagation()" onclick="event.stopPropagation();ExecCtrl.toggleDone('${t.id}')">
+                        ondragstart="event.stopPropagation()" onclick="event.stopPropagation();${isCopyMode ? `ExecCtrl.copyToSlot('${d.iso}','${d.name}','${time}')` : `ExecCtrl.toggleDone('${t.id}')`}">
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                 </button>
               </div>`;
@@ -340,6 +368,44 @@ export const ExecCtrl = {
     this.renderTaskList();
     this.renderTable();
     Toast.show(`Alocado em ${dayName} às ${time}.`, "success");
+  },
+
+  startCopy(id, event) {
+    event.stopPropagation();
+    this.activeSlotId = null;
+    this.copyTaskId = id;
+    this.renderTable();
+  },
+
+  cancelCopy() {
+    this.copyTaskId = null;
+    this.renderTable();
+  },
+
+  copyToSlot(dateIso, dayName, time) {
+    const src = AppState.tasks.find((t) => t.id === this.copyTaskId);
+    if (!src) return;
+    const copy = {
+      id: crypto.randomUUID(),
+      text: src.text,
+      type: src.type,
+      fonte: src.fonte,
+      score: src.score,
+      quadrant: src.quadrant,
+      category: src.category,
+      execDate: dateIso,
+      execDay: dayName,
+      execTime: time,
+      execStatus: "Pendente",
+      done: false,
+      createdAt: new Date().toISOString(),
+    };
+    AppState.tasks.push(copy);
+    App.touch(copy);
+    App.save();
+    this.copyTaskId = null;
+    this.renderTable();
+    Toast.show(`Cópia criada em ${dayName} às ${time}.`, "success");
   },
 
   updateDropdown() { this.renderTaskList(); this.renderTable(); },
