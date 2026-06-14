@@ -86,8 +86,8 @@ export const SyncCtrl = {
   async loadAll() {
     const [{ data: remoteTasks, error: e1 }, { data: remoteProjects, error: e2 }] =
       await Promise.all([
-        db.from("tasks").select("*").eq("user_id", this.userId),
-        db.from("projects").select("*").eq("user_id", this.userId),
+        db.from("tb_super_tasks").select("*").eq("user_id", this.userId),
+        db.from("tb_super_projects").select("*").eq("user_id", this.userId),
       ]);
 
     if (e1 || e2) throw new Error(e1?.message || e2?.message);
@@ -158,19 +158,19 @@ export const SyncCtrl = {
     const projRows = AppState.projects.map((p) => this._projectToRow(p));
 
     await Promise.all([
-      db.from("tasks").upsert(taskRows, { onConflict: "id" }),
-      db.from("projects").upsert(projRows, { onConflict: "id" }),
+      db.from("tb_super_tasks").upsert(taskRows, { onConflict: "id" }),
+      db.from("tb_super_projects").upsert(projRows, { onConflict: "id" }),
     ]);
   },
 
   async deleteTask(id) {
     if (!navigator.onLine || !this.userId) return;
-    await db.from("tasks").delete().eq("id", id).eq("user_id", this.userId);
+    await db.from("tb_super_tasks").delete().eq("id", id).eq("user_id", this.userId);
   },
 
   async deleteProject(id) {
     if (!navigator.onLine || !this.userId) return;
-    await db.from("projects").delete().eq("id", id).eq("user_id", this.userId);
+    await db.from("tb_super_projects").delete().eq("id", id).eq("user_id", this.userId);
   },
 
   async syncInBackground() {

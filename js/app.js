@@ -209,8 +209,8 @@ export const App = {
       async () => {
         if (navigator.onLine && SyncCtrl.userId) {
           await Promise.all([
-            db.from("tasks").delete().eq("user_id", SyncCtrl.userId),
-            db.from("projects").delete().eq("user_id", SyncCtrl.userId),
+            db.from("tb_super_tasks").delete().eq("user_id", SyncCtrl.userId),
+            db.from("tb_super_projects").delete().eq("user_id", SyncCtrl.userId),
           ]);
         }
         setAppState(JSON.parse(JSON.stringify(defaultState)));
