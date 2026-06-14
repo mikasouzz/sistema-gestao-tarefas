@@ -80,6 +80,12 @@ create policy "tasks: acesso próprio"
   with check (auth.uid() = user_id);
 
 -- ------------------------------------------------------------
+-- Grants — role authenticated precisa de permissão explícita
+-- ------------------------------------------------------------
+grant select, insert, update, delete on public.tb_super_tasks    to authenticated;
+grant select, insert, update, delete on public.tb_super_projects to authenticated;
+
+-- ------------------------------------------------------------
 -- Índices para queries frequentes
 -- ------------------------------------------------------------
 create index if not exists idx_tasks_user_id     on tb_super_tasks    (user_id);
