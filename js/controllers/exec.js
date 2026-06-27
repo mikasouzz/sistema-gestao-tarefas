@@ -105,7 +105,7 @@ export const ExecCtrl = {
     if (!container) return;
 
     const tasks = AppState.tasks.filter(
-      (t) => (t.quadrant === "q1" || t.quadrant === "q2") && !t.done && !t.execDate,
+      (t) => (!t.quadrant || t.quadrant === "q1" || t.quadrant === "q2") && !t.done && !t.execDate,
     );
 
     if (tasks.length === 0) {
@@ -406,6 +406,24 @@ export const ExecCtrl = {
     this.copyTaskId = null;
     this.renderTable();
     Toast.show(`Cópia criada em ${dayName} às ${time}.`, "success");
+  },
+
+  quickAddToList() {
+    const input = document.getElementById("exec-quick-input");
+    const text = input?.value?.trim();
+    if (!text) return;
+    const task = {
+      id: crypto.randomUUID(),
+      text,
+      done: false,
+      createdAt: new Date().toISOString(),
+    };
+    AppState.tasks.push(task);
+    App.touch(task);
+    App.save();
+    input.value = "";
+    this.renderTaskList();
+    Toast.show("Tarefa adicionada.", "success");
   },
 
   updateDropdown() { this.renderTaskList(); this.renderTable(); },

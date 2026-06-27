@@ -504,6 +504,12 @@
               <h3>Demandas Triadas</h3>
               <p>Selecione uma tarefa e clique no horário desejado</p>
             </div>
+            <div class="exec-quick-add">
+              <input id="exec-quick-input" class="exec-quick-input" type="text"
+                     placeholder="Nova tarefa..."
+                     onkeydown="if(event.key==='Enter')ExecCtrl.quickAddToList()">
+              <button class="exec-quick-btn" onclick="ExecCtrl.quickAddToList()">+</button>
+            </div>
             <div class="exec-task-list" id="exec-task-list"></div>
             <div class="exec-suggestions" id="exec-suggestions" style="display:none">
               <p class="exec-suggestions-title">Sugestões</p>

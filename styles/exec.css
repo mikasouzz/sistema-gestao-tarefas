@@ -13,6 +13,40 @@
   flex-direction: column;
   overflow: hidden;
 }
+.exec-quick-add {
+  display: flex;
+  gap: 6px;
+  padding: 8px 9px 4px;
+  flex-shrink: 0;
+}
+.exec-quick-input {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.78rem;
+  padding: 5px 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.exec-quick-input:focus { border-color: var(--primary-mid); }
+.exec-quick-btn {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  font-size: 1.1rem;
+  line-height: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.exec-quick-btn:hover { color: var(--text-primary); border-color: var(--primary-mid); }
+
 .exec-suggestions {
   border-top: 1px solid var(--border);
   padding: 10px 9px;
